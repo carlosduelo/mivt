@@ -53,11 +53,6 @@ class hdf5File : public FileManager
 		void readCube(index_node_t index, float * cube);
 };
 
-#if 0
-FileManager * OpenFile(char ** argv, int p_levelCube, int p_nLevels, int3 p_cubeDim, int3 p_cubeInc)
-{
-	return new hdf5File(argv[0], argv[1], p_levelCube, p_nLevels, p_cubeDim, p_cubeInc);
-}
-#endif
+extern FileManager * OpenFile(char ** argv, int p_levelCube, int p_nLevels, int3 p_cubeDim, int3 p_cubeInc);
 
 #endif
