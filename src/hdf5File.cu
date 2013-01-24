@@ -4,7 +4,7 @@
 #include <iostream>
 #include <strings.h>
 
-hdf5File::hdf5File(const char * file_name, const char * dataset_name, int p_levelCube, int p_nLevels, int3 p_cubeDim, int3 p_cubeInc) : File(p_levelCube, p_nLevels, p_cubeDim, p_cubeInc)
+hdf5File::hdf5File(const char * file_name, const char * dataset_name, int p_levelCube, int p_nLevels, int3 p_cubeDim, int3 p_cubeInc) : FileManager(p_levelCube, p_nLevels, p_cubeDim, p_cubeInc)
 {
 	if ((file_id    = H5Fopen(file_name, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
 	{
@@ -57,8 +57,8 @@ hdf5File::~hdf5File()
 void hdf5File::readCube(index_node_t index, float * cube)
 {
 	int3 coord 	= getMinBoxIndex2(index, levelCube, nLevels);
-	int3 e 		= coord - cubeInc;
-	int3 s 		= e + realCubeDim;
+	int3 s 		= coord - cubeInc;
+	int3 e 		= s + realCubeDim;
 
 	hsize_t dim[3] = {abs(e.x-s.x),abs(e.y-s.y),abs(e.z-s.z)};
 
@@ -86,7 +86,7 @@ void hdf5File::readCube(index_node_t index, float * cube)
 				   e.y > (int)this->dims[1] ? this->dims[1] - offset[1] : e.y - offset[1],
 				   e.z > (int)this->dims[2] ? this->dims[2] - offset[2] : e.z - offset[2]};
 
-	#if DEBUG
+	#if DEBUG 
 	std::cout<<"Dimension cube "<<dim[0]<<" "<<dim[1]<<" "<<dim[2]<<std::endl;
 	std::cout<<"Dimension hyperSlab "<<dimR[0]<<" "<<dimR[1]<<" "<<dimR[2]<<std::endl;
 	std::cout<<"Offset in "<<offset[0]<<" "<<offset[1]<<" "<<offset[2]<<std::endl;
