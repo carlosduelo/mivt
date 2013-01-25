@@ -1,4 +1,5 @@
 #include "lruCache.hpp"
+#include <Exceptions.hpp>
 #include <iostream>
 #include <fstream>
 
@@ -116,13 +117,55 @@ lruCache::lruCache(char ** argv, int p_maxElementsGPU, int3 p_cubeDim, int p_cub
 
 	// Open File
 	fileManager = OpenFile(argv, levelCube, nLevels, cubeDim, cubeInc);
+
+	if(pthread_mutex_init(&mutex, NULL))
+    	{
+        	std::cerr<<"Unable to initialize a mutex"<<std::endl;
+        	throw excepGen;
+    	}	
 }
 
 lruCache::~lruCache()
 {
+	pthread_mutex_destroy(&mutex);
+
 	delete queuePositionsGPU;
 	delete queuePositionsCPU;
 	delete fileManager;
 	cudaFree(cacheDataGPU);
 	cudaFreeHost(cacheDataCPU);
+}
+
+void lruCache::push(visibleCube_t * visibleCubes, int num, threadID_t * thread)
+{
+	for(int i=0; i<num; i++)
+	{
+		pthread_mutex_lock(&mutex);
+
+		push_cube(&visibleCubes[i], thread);
+
+		pthread_mutex_unlock(&mutex);
+	}
+}
+
+void lruCache::pop(visibleCube_t * visibleCubes, int num, threadID_t * thread)
+{
+	for(int i=0; i<num; i++)
+	{
+		pthread_mutex_lock(&mutex);
+
+		pop_cube(&visibleCubes[i], thread);
+
+		pthread_mutex_unlock(&mutex);
+	}
+}
+
+void lruCache::push_cube(visibleCube_t * cube, threadID_t * thread)
+{
+	return;
+}
+
+void lruCache::pop_cube(visibleCube_t * cube, threadID_t * thread)
+{
+	return;
 }

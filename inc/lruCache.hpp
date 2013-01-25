@@ -11,7 +11,7 @@
 #include "cutil_math.h"
 #include <map>
 //#include <boost/unordered_map.hpp>
-
+#include <pthread.h>
 
 class NodeLinkedList
 {
@@ -41,10 +41,9 @@ class LinkedList
 
 class lruCache
 {
-
 	private:
-		int	maxElementsGPU;
-		int	maxElementsCPU;
+		// Synchronization
+		pthread_mutex_t mutex;
 
 		int3	cubeDim;
 		int3	cubeInc;
@@ -58,13 +57,18 @@ class lruCache
 		std::map<index_node_t, NodeLinkedList *> indexStoredGPU;
 		//boost::unordered_map<index_node_t, NodeLinkedList *> indexStoredCPU;
 		//boost::unordered_map<index_node_t, NodeLinkedList *> indexStoredGPU;
-		LinkedList	*			 queuePositionsCPU;
-		LinkedList	*			 queuePositionsGPU;
+		LinkedList	*	queuePositionsCPU;
+		LinkedList	*	queuePositionsGPU;
 
-		float		*			 cacheDataGPU;
-		float		*			 cacheDataCPU;
-		FileManager	*			 fileManager;
+		int			maxElementsGPU;
+		int			maxElementsCPU;
+		float		*	cacheDataGPU;
+		float		*	cacheDataCPU;
 
+		// Acces to file
+		FileManager	*	fileManager;
+
+		// Methods
 		void push_cube(visibleCube_t * cube, threadID_t * thread);
 		void pop_cube(visibleCube_t * cube, threadID_t * thread);
 	public:
