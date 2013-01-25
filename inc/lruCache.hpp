@@ -9,33 +9,42 @@
 #include "config.hpp"
 #include "FileManager.hpp"
 #include "cutil_math.h"
-#include <map>
-//#include <boost/unordered_map.hpp>
 #include <pthread.h>
+
+#if _BUNORDER_MAP_
+	#include <boost/unordered_map.hpp>
+#else
+	#include <map>
+#endif
 
 class NodeLinkedList
 {
 	public:
-		NodeLinkedList * after;
-		NodeLinkedList * before;
-		unsigned int	 element;
-		index_node_t 	 cubeID;
+		NodeLinkedList * 	after;
+		NodeLinkedList * 	before;
+		unsigned int	 	element;
+		index_node_t 	 	cubeID;
+		int			references;
 };
 
 class LinkedList
 {
 	private:
-		NodeLinkedList * list;
-		NodeLinkedList * last;
-		NodeLinkedList * memoryList;
+		NodeLinkedList * 	list;
+		NodeLinkedList * 	last;
+		NodeLinkedList * 	memoryList;
+		int			freePositions;
 	public:
 		LinkedList(int size);
 		~LinkedList();
 
 		/* pop_front and push_last */
-		NodeLinkedList * getFromFirstPosition(index_node_t newIDcube, index_node_t * removedIDcube);
+		NodeLinkedList * 	getFirstFreePosition(index_node_t newIDcube, index_node_t * removedIDcube);
 
-		NodeLinkedList * moveToLastPosition(NodeLinkedList * node);	
+		NodeLinkedList * 	moveToLastPosition(NodeLinkedList * node);	
+
+		void 			removeReference(NodeLinkedList * node, int ref);
+		void 			addReference(NodeLinkedList * node, int ref);
 };
 
 
@@ -53,10 +62,14 @@ class lruCache
 		int	levelOctree;
 		int	nLevels;
 
-		std::map<index_node_t, NodeLinkedList *> indexStoredCPU;
-		std::map<index_node_t, NodeLinkedList *> indexStoredGPU;
-		//boost::unordered_map<index_node_t, NodeLinkedList *> indexStoredCPU;
-		//boost::unordered_map<index_node_t, NodeLinkedList *> indexStoredGPU;
+		#if _BUNORDER_MAP_
+			boost::unordered_map<index_node_t, NodeLinkedList *> indexStoredCPU;
+			boost::unordered_map<index_node_t, NodeLinkedList *> indexStoredGPU;
+		#else
+			std::map<index_node_t, NodeLinkedList *> indexStoredCPU;
+			std::map<index_node_t, NodeLinkedList *> indexStoredGPU;
+		#endif
+
 		LinkedList	*	queuePositionsCPU;
 		LinkedList	*	queuePositionsGPU;
 
