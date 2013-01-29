@@ -2,6 +2,7 @@
 #include <Exceptions.hpp>
 #include <iostream>
 #include <fstream>
+#include <strings.h>
 
 LinkedList::LinkedList(int size)
 {
@@ -129,7 +130,8 @@ void 	LinkedList::addReference(NodeLinkedList * node, int ref)
 	node->references |= ref;
 }
 
-lruCache::lruCache(char ** argv, int p_maxElementsGPU, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels, int p_maxElementsCPU)
+
+lruCache::lruCache(int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels)
 {
 	// cube size
 	cubeDim 	= p_cubeDim;
@@ -141,103 +143,40 @@ lruCache::lruCache(char ** argv, int p_maxElementsGPU, int3 p_cubeDim, int p_cub
 	offsetCube	= (cubeDim.x+2*cubeInc.x)*(cubeDim.y+2*cubeInc.y)*(cubeDim.z+2*cubeInc.z);
 
 	// Creating caches
-	maxElementsGPU 		= p_maxElementsGPU;
-	maxElementsCPU 		= p_maxElementsCPU;
-	queuePositionsGPU	= new LinkedList(maxElementsGPU);
-	queuePositionsCPU	= new LinkedList(maxElementsCPU);
-
-	// Allocating memory
-	std::cerr<<"Creating cache in GPU: "<< maxElementsGPU*offsetCube*sizeof(float)/1024/1024<<" MB"<<std::endl; 
-	if (cudaSuccess != cudaMalloc((void**)&cacheDataGPU, maxElementsGPU*offsetCube*sizeof(float)))
-	{
-		std::cerr<<"LRUCache: Error creating gpu cache"<<std::endl;
-		throw excepGen;
-	}
-	std::cerr<<"Creating cache in CPU: "<< maxElementsCPU*offsetCube*sizeof(float)/1024/1024<<" MB: "<<std::endl;
-	if (cudaSuccess != cudaHostAlloc((void**)&cacheDataCPU, maxElementsCPU*offsetCube*sizeof(float),cudaHostAllocDefault))
-	{
-		std::cerr<<"LRUCache: Error creating gpu cache"<<std::endl;
-		throw excepGen;
-	}
-
-	// Open File
-	fileManager = OpenFile(argv, levelCube, nLevels, cubeDim, cubeInc);
+	maxElements	= p_maxElements;
+	queuePositions	= new LinkedList(maxElements);
 
 	// Creating mutex needed to synchronization
-	if(pthread_mutex_init(&mutex, NULL))
-    	{
-        	std::cerr<<"Unable to initialize a mutex"<<std::endl;
-        	throw excepGen;
-    	}	
+	lock = new lunchbox::Lock();
 }
 
-lruCache::~lruCache()
+Cache::Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels)
 {
-	pthread_mutex_destroy(&mutex);
-
-	delete queuePositionsGPU;
-	delete queuePositionsCPU;
-	delete fileManager;
-	cudaFree(cacheDataGPU);
-	cudaFreeHost(cacheDataCPU);
+	if (strcmp(argv[0], "GPU_FILE") == 0)
+	{
+		caches = new cache_GPU_File(&argv[1], p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_levelsOctree, p_nLevels);
+	}
+	else
+	{
+		std::cerr<<"Error: cache options error"<<std::endl;
+		throw excepGen;
+	}
 }
 
-void lruCache::push(visibleCube_t * visibleCubes, int num, threadID_t * thread)
+void Cache::push(visibleCube_t * visibleCubes, int num, threadID_t * thread)
 {
 	// For each visible cube push into the cache
 	for(int i=0; i<num; i++)
 	{
-		pthread_mutex_lock(&mutex);
-
-		push_cube(&visibleCubes[i], thread);
-
-		pthread_mutex_unlock(&mutex);
+		caches->push_cube(&visibleCubes[i], thread);
 	}
 }
 
-void lruCache::pop(visibleCube_t * visibleCubes, int num, threadID_t * thread)
+void Cache::pop(visibleCube_t * visibleCubes, int num, threadID_t * thread)
 {
 	// For each visible cube pop out the cache
 	for(int i=0; i<num; i++)
 	{
-		pthread_mutex_lock(&mutex);
-
-		pop_cube(&visibleCubes[i], thread);
-
-		pthread_mutex_unlock(&mutex);
-	}
-}
-
-void lruCache::push_cube(visibleCube_t * cube, threadID_t * thread)
-{
-	return;
-}
-
-void lruCache::pop_cube(visibleCube_t * cube, threadID_t * thread)
-{
-	index_node_t idCube = cube->id >> (3*(levelOctree-levelCube));
-
-	#if _BUNORDER_MAP_
-		boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
-	#else
-		std::map<index_node_t, NodeLinkedList *>::iterator it;
-	#endif
-
-	// Find the cube in the CPU cache
-	it = indexStoredCPU.find(idCube);
-
-	if ( it != indexStoredCPU.end() ) // If exist remove reference
-	{
-		NodeLinkedList * node = it->second;
-		queuePositionsCPU->removeReference(node,thread->id);
-	}
-
-	// Find the cube in the GPU cache
-	it = indexStoredGPU.find(idCube);
-
-	if ( it != indexStoredGPU.end() ) // If exist remove reference
-	{
-		NodeLinkedList * node = it->second;
-		queuePositionsGPU->removeReference(node, thread->id);
+		caches->pop_cube(&visibleCubes[i], thread);
 	}
 }

@@ -6,10 +6,11 @@
 
 #ifndef _LRU_CACHE_H_
 #define _LRU_CACHE_H_
+
 #include "config.hpp"
 #include "FileManager.hpp"
 #include "cutil_math.h"
-#include <pthread.h>
+#include <lunchbox/lock.h>
 
 #if _BUNORDER_MAP_
 	#include <boost/unordered_map.hpp>
@@ -47,12 +48,10 @@ class LinkedList
 		void 			addReference(NodeLinkedList * node, int ref);
 };
 
-
 class lruCache
 {
-	private:
-		// Synchronization
-		pthread_mutex_t mutex;
+	protected:		
+		lunchbox::Lock	* lock;
 
 		int3	cubeDim;
 		int3	cubeInc;
@@ -63,31 +62,51 @@ class lruCache
 		int	nLevels;
 
 		#if _BUNORDER_MAP_
-			boost::unordered_map<index_node_t, NodeLinkedList *> indexStoredCPU;
-			boost::unordered_map<index_node_t, NodeLinkedList *> indexStoredGPU;
+			boost::unordered_map<index_node_t, NodeLinkedList *> indexStored;
 		#else
-			std::map<index_node_t, NodeLinkedList *> indexStoredCPU;
-			std::map<index_node_t, NodeLinkedList *> indexStoredGPU;
+			std::map<index_node_t, NodeLinkedList *> indexStored;
 		#endif
 
-		LinkedList	*	queuePositionsCPU;
-		LinkedList	*	queuePositionsGPU;
+		LinkedList	*	queuePositions;
 
-		int			maxElementsGPU;
-		int			maxElementsCPU;
-		float		*	cacheDataGPU;
-		float		*	cacheDataCPU;
+		int			maxElements;
+		float		*	cacheData;
 
+
+	public:
+		lruCache(int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels);
+
+		virtual ~lruCache() {};
+
+		virtual void push_cube(visibleCube_t * cube, threadID_t * thread);
+
+                virtual void pop_cube(visibleCube_t * cube, threadID_t * thread);		
+};
+
+class cache_GPU_File : public lruCache
+{
+	private:
 		// Acces to file
 		FileManager	*	fileManager;
-
-		// Methods
-		void push_cube(visibleCube_t * cube, threadID_t * thread);
-		void pop_cube(visibleCube_t * cube, threadID_t * thread);
 	public:
-		lruCache(char ** argv, int p_maxElementsGPU, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels, int p_maxElementsCPU);
+		cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels);
+
+		~cache_GPU_File();
+
+		void push_cube(visibleCube_t * cube, threadID_t * thread);
+
+                void pop_cube(visibleCube_t * cube, threadID_t * thread);
+};
+
+
+class Cache
+{
+	private:
+		lruCache * caches; 
+	public:
+		Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels);
 		
-		~lruCache();
+		~Cache();
 
 		void push(visibleCube_t * visibleCubes, int num, threadID_t * thread);
 
