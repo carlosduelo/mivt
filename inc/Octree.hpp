@@ -47,10 +47,6 @@ class Octree
 		index_node_t * 	memoryGPU;
 		int	*	sizes;
 
-		// Octree State
-		int 	*	GstackActual;
-		index_node_t * 	GstackIndex;
-		int	*	GstackLevel;
 	public:
 		Octree();
 
@@ -65,6 +61,11 @@ class Octree
 
 class Octree_completeGPU : public Octree
 {
+	private:
+		// Octree State
+		int 	*	GstackActual;
+		index_node_t * 	GstackIndex;
+		int	*	GstackLevel;
 	public:
 		Octree_completeGPU(OctreeContainer * oc, int p_maxLevel);
 

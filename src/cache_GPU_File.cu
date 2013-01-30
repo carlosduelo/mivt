@@ -69,8 +69,15 @@ void cache_GPU_File::push_cube(visibleCube_t * cube, threadID_t * thread)
 			if (removedCube!= (index_node_t)0)
 				indexStored.erase(indexStored.find(removedCube));
 
-			unsigned pos   = node->element;
 			fileManager->readCube(idCube, cacheData+ pos*offsetCube);
+
+			unsigned pos   = node->element;
+			cube->data 	= cacheData + pos*offsetCube;
+			cube->state 	= CACHED;
+			cube->cubeID 	= idCube;
+
+			queuePositions->moveToLastPosition(node);
+			queuePositions->addReference(node,thread->id);
 		}
 		else // there is no free slot
 		{
