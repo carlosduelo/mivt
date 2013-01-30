@@ -58,7 +58,6 @@ class lruCache
 		int3	realcubeDim;
 		int	offsetCube;
 		int	levelCube;
-		int	levelOctree;
 		int	nLevels;
 
 		#if _BUNORDER_MAP_
@@ -74,13 +73,15 @@ class lruCache
 
 
 	public:
-		lruCache(int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels);
+		lruCache(int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 
 		virtual ~lruCache() {};
 
-		virtual void push_cube(visibleCube_t * cube, threadID_t * thread);
+		virtual	int getCacheLevel();
 
-                virtual void pop_cube(visibleCube_t * cube, threadID_t * thread);		
+		virtual void push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+
+                virtual void pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);		
 };
 
 class cache_GPU_File : public lruCache
@@ -89,27 +90,31 @@ class cache_GPU_File : public lruCache
 		// Acces to file
 		FileManager	*	fileManager;
 	public:
-		cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels);
+		cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 
 		~cache_GPU_File();
 
-		void push_cube(visibleCube_t * cube, threadID_t * thread);
+		int getCacheLevel();
 
-                void pop_cube(visibleCube_t * cube, threadID_t * thread);
+		void push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+
+                void pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
 };
 
 
 class Cache
 {
 	private:
-		lruCache * caches; 
+		lruCache * cache; 
 	public:
-		Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels);
+		Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 		
 		~Cache();
 
-		void push(visibleCube_t * visibleCubes, int num, threadID_t * thread);
+		int getCacheLevel();
 
-		void pop(visibleCube_t * visibleCubes, int num, threadID_t * thread);
+		void push(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread);
+
+		void pop(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread);
 };
 #endif

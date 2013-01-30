@@ -41,6 +41,7 @@ class Octree
 {
 	protected:
 		int nLevels;
+		int currentLevel;
 		int maxLevel;
 
 		index_node_t ** octree;
@@ -48,32 +49,60 @@ class Octree
 		int	*	sizes;
 
 	public:
-		Octree();
+		Octree(OctreeContainer * oc, int p_maxLevel)
+		{
+			maxLevel        = p_maxLevel;
+			currentLevel    = p_maxLevel;
+			nLevels         = oc->getnLevels();
+			octree          = oc->getOctree();
+			sizes           = oc->getSizes();
+		}
 
 		virtual ~Octree() {};
 
-		virtual void resetState(cudaStream_t stream);
+		void	increaseLevel()
+		{
+			currentLevel = currentLevel == maxLevel ? maxLevel : currentLevel + 1;
+		}
+
+		void	decreaseLevel()
+		{
+			currentLevel = currentLevel == 1 ? 1 : currentLevel - 1;
+		}
+
+		int 	getnLevels()
+		{
+			return nLevels;
+		}
+
+		int	getOctreeLevel()
+		{
+			return currentLevel;
+		}
+
+		virtual void resetState(cudaStream_t stream) = 0;
 
 		/* Dado un rayo devuelve true si el rayo impacta contra el volumen, el primer box del nivel dado contra el que impacta y la distancia entre el origen del rayo y la box */
-		virtual bool getBoxIntersected(visibleCube_t * visibleGPU, visibleCube_t * visibleCPU, cudaStream_t stream);
+		virtual bool getBoxIntersected(float3 camera_position, float * rays, int numRays, visibleCube_t * visibleGPU, visibleCube_t * visibleCPU, cudaStream_t stream) = 0;
 
 };
 
 class Octree_completeGPU : public Octree
 {
 	private:
+		int		maxRays;
 		// Octree State
 		int 	*	GstackActual;
 		index_node_t * 	GstackIndex;
 		int	*	GstackLevel;
 	public:
-		Octree_completeGPU(OctreeContainer * oc, int p_maxLevel);
+		Octree_completeGPU(OctreeContainer * oc, int p_maxLevel, int p_maxRays);
 
 		~Octree_completeGPU();
 
 		void resetState(cudaStream_t stream);
 
-		bool getBoxIntersected(visibleCube_t * visibleGPU, visibleCube_t * visibleCPU, cudaStream_t stream);
+		bool getBoxIntersected(float3 camera_position, float * rays, int numRays, visibleCube_t * visibleGPU, visibleCube_t * visibleCPU, cudaStream_t stream);
 };
 
 #if 0

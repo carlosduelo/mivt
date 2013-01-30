@@ -16,8 +16,12 @@ class threadWorker : public lunchbox::Thread
 	private:
 		Channel	*	pipe;
 		Cache	*	cache;
+
 		visibleCube_t * visibleCubesCPU;
                 visibleCube_t * visibleCubesGPU;
+
+		float	*	rays;
+		int	*	numRays;
 	public:
 		threadWorker();
 

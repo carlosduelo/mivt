@@ -1,6 +1,7 @@
 #include "Octree.hpp"
 #include "mortonCodeUtil.hpp"
 #include "cuda_help.hpp"
+#include "Exceptions.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -688,19 +689,37 @@ __global__ void cuda_resetState(int numElements, int * stackActual, index_node_t
  ******************************************************************************************************
  */
 
-Octree_completeGPU::Octree_completeGPU(OctreeContainer * oc, int p_maxLevel)
+Octree_completeGPU::Octree_completeGPU(OctreeContainer * oc, int p_maxLevel, int p_maxRays) : Octree(oc, p_maxLevel)
 {
-	maxLevel	= p_maxLevel;
-	nLevels		= oc->getnLevels();
-	octree		= oc->getOctree();
-	sizes		= oc->getSizes();
+	maxRays = p_maxRays;
 
-	#if 0
 	// Create octree State
-	std::cerr<<"Allocating memory octree state stackIndex "<<camera->get_numRays()*STACK_DIM*sizeof(index_node_t)/1024.0f/1024.0f<<" MB: "<< cudaGetErrorString(cudaMalloc(&GstackIndex, camera->get_numRays()*STACK_DIM*sizeof(index_node_t))) << std::endl;
-	std::cerr<<"Allocating memory octree state stackActual "<<camera->get_numRays()*sizeof(int)/1024.0f/1024.0f<<" MB: "<< cudaGetErrorString(cudaMalloc(&GstackActual, camera->get_numRays()*sizeof(int))) << std::endl;
-	std::cerr<<"Allocating memory octree state stackLevel "<<camera->get_numRays()*STACK_DIM*sizeof(int)/1024.0f/1024.0f<<" MB: "<< cudaGetErrorString(cudaMalloc(&GstackLevel, camera->get_numRays()*STACK_DIM*sizeof(int))) << std::endl;
-	#endif
+	std::cerr<<"Allocating memory octree state stackIndex "<<maxRays*STACK_DIM*sizeof(index_node_t)/1024.0f/1024.0f<<" MB: ";
+	if (cudaSuccess != cudaMalloc(&GstackIndex, maxRays*STACK_DIM*sizeof(index_node_t)))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw excepGen;
+	}
+	else
+		std::cerr<<"OK"<<std::endl;
+
+	std::cerr<<"Allocating memory octree state stackActual "<<maxRays*sizeof(int)/1024.0f/1024.0f<<" MB: ";
+	if (cudaSuccess != cudaMalloc(&GstackActual, maxRays*sizeof(int)))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw excepGen;
+	}
+	else
+		std::cerr<<"OK"<<std::endl;
+
+	std::cerr<<"Allocating memory octree state stackLevel "<<maxRays*STACK_DIM*sizeof(int)/1024.0f/1024.0f<<" MB: ";
+	if (cudaSuccess != cudaMalloc(&GstackLevel, maxRays*STACK_DIM*sizeof(int)))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw excepGen;
+	}
+	else
+		std::cerr<<"OK"<<std::endl;
 }
 
 Octree_completeGPU::~Octree_completeGPU()
@@ -712,34 +731,29 @@ Octree_completeGPU::~Octree_completeGPU()
 
 void Octree_completeGPU::resetState(cudaStream_t stream)
 {
-	#if 0
-	int numElements = camera->get_numRays();
-	dim3 threads = getThreads(numElements);
-	dim3 blocks = getBlocks(numElements);
+	dim3 threads = getThreads(maxRays);
+	dim3 blocks = getBlocks(maxRays);
 
-	cuda_resetState<<<blocks,threads, 0, stream>>>(numElements, GstackActual, GstackIndex, GstackLevel);
+	cuda_resetState<<<blocks,threads, 0, stream>>>(maxRays, GstackActual, GstackIndex, GstackLevel);
 //	std::cerr<<"Launching kernek blocks ("<<blocks.x<<","<<blocks.y<<","<<blocks.z<<") threads ("<<threads.x<<","<<threads.y<<","<<threads.z<<") error: "<< cudaGetErrorString(cudaGetLastError())<<std::endl;
-	#endif
 }
 
-bool Octree_completeGPU::getBoxIntersected(visibleCube_t * visibleGPU, visibleCube_t * visibleCPU, cudaStream_t stream)
+bool Octree_completeGPU::getBoxIntersected(float3 camera_position, float * rays, int numRays, visibleCube_t * visibleGPU, visibleCube_t * visibleCPU, cudaStream_t stream)
 {
-	#if 0
 	//std::cerr<<"Getting firts box intersected"<<std::endl;
 
-	int numElements = camera->get_numRays();
-	dim3 threads = getThreads(numElements);
-	dim3 blocks = getBlocks(numElements);
+	dim3 threads = getThreads(numRays);
+	dim3 blocks = getBlocks(numRays);
 
 	//std::cerr<<"Set HEAP size: "<< cudaGetErrorString(cudaThreadSetLimit(cudaLimitMallocHeapSize , numElements*1216)) << std::endl;
 
-	cuda_getFirtsVoxel<<<blocks,threads,0,stream>>>(octree, sizes, nLevels, camera->get_position(), camera->get_rayDirections(), maxLevel, visibleGPU, numElements, GstackActual, GstackIndex, GstackLevel);
+	cuda_getFirtsVoxel<<<blocks,threads,0,stream>>>(octree, sizes, nLevels, camera_position, rays, currentLevel, visibleGPU, numRays, GstackActual, GstackIndex, GstackLevel);
 
 	//std::cerr<<"Launching kernek blocks ("<<blocks.x<<","<<blocks.y<<","<<blocks.z<<") threads ("<<threads.x<<","<<threads.y<<","<<threads.z<<") error: "<< cudaGetErrorString(cudaGetLastError())<<std::endl;
 
-	std::cerr<<"Coping to host visibleCubes: "<< cudaGetErrorString(cudaMemcpyAsync((void*)visibleCPU, (const void*)visibleGPU, numElements*sizeof(visibleCube_t), cudaMemcpyDeviceToHost,stream)) << std::endl;
+	std::cerr<<"Coping to host visibleCubes: "<< cudaGetErrorString(cudaMemcpyAsync((void*)visibleCPU, (const void*)visibleGPU, numRays*sizeof(visibleCube_t), cudaMemcpyDeviceToHost, stream)) << std::endl;
 
 	//std::cerr<<"End Getting firts box intersected"<<std::endl;
-	#endif
+
 	return true;
 }

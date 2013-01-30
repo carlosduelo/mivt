@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 
-cache_GPU_File::cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels) :
-	lruCache(p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_levelsOctree, p_nLevels)
+cache_GPU_File::cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels) :
+	lruCache(p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels)
 {
 	// OpenFile
 	fileManager = OpenFile(argv, p_levelCube, p_nLevels, p_cubeDim, make_int3(p_cubeInc,p_cubeInc,p_cubeInc));
@@ -32,9 +32,14 @@ cache_GPU_File::~cache_GPU_File()
 	cudaFree(cacheData);
 }
 
-void cache_GPU_File::push_cube(visibleCube_t * cube, threadID_t * thread)
+int cache_GPU_File::getCacheLevel()
 {
-	index_node_t idCube = cube->id >> (3*(levelOctree-levelCube));
+	return levelCube;
+}
+
+void cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
+{
+	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
 #if _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
@@ -69,9 +74,9 @@ void cache_GPU_File::push_cube(visibleCube_t * cube, threadID_t * thread)
 			if (removedCube!= (index_node_t)0)
 				indexStored.erase(indexStored.find(removedCube));
 
+			unsigned pos   = node->element;
 			fileManager->readCube(idCube, cacheData+ pos*offsetCube);
 
-			unsigned pos   = node->element;
 			cube->data 	= cacheData + pos*offsetCube;
 			cube->state 	= CACHED;
 			cube->cubeID 	= idCube;
@@ -89,9 +94,9 @@ void cache_GPU_File::push_cube(visibleCube_t * cube, threadID_t * thread)
 	lock->unset();
 }
 
-void cache_GPU_File::pop_cube(visibleCube_t * cube, threadID_t * thread)
+void cache_GPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
 {
-	index_node_t idCube = cube->id >> (3*(levelOctree-levelCube));
+	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
 #if _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;

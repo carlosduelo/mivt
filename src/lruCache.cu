@@ -131,14 +131,13 @@ void 	LinkedList::addReference(NodeLinkedList * node, int ref)
 }
 
 
-lruCache::lruCache(int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels)
+lruCache::lruCache(int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels)
 {
 	// cube size
 	cubeDim 	= p_cubeDim;
 	cubeInc		= make_int3(p_cubeInc,p_cubeInc,p_cubeInc);
 	realcubeDim	= p_cubeDim + 2 * p_cubeInc;
 	levelCube	= p_levelCube;
-	levelOctree	= p_levelsOctree;
 	nLevels		= p_nLevels;
 	offsetCube	= (cubeDim.x+2*cubeInc.x)*(cubeDim.y+2*cubeInc.y)*(cubeDim.z+2*cubeInc.z);
 
@@ -150,11 +149,11 @@ lruCache::lruCache(int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_level
 	lock = new lunchbox::Lock();
 }
 
-Cache::Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_levelsOctree, int p_nLevels)
+Cache::Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels)
 {
 	if (strcmp(argv[0], "GPU_FILE") == 0)
 	{
-		caches = new cache_GPU_File(&argv[1], p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_levelsOctree, p_nLevels);
+		cache = new cache_GPU_File(&argv[1], p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels);
 	}
 	else
 	{
@@ -163,20 +162,26 @@ Cache::Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int
 	}
 }
 
-void Cache::push(visibleCube_t * visibleCubes, int num, threadID_t * thread)
+
+int Cache::getCacheLevel()
+{
+	return cache->getCacheLevel();
+}
+
+void Cache::push(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread)
 {
 	// For each visible cube push into the cache
 	for(int i=0; i<num; i++)
 	{
-		caches->push_cube(&visibleCubes[i], thread);
+		cache->push_cube(&visibleCubes[i], octreeLevel, thread);
 	}
 }
 
-void Cache::pop(visibleCube_t * visibleCubes, int num, threadID_t * thread)
+void Cache::pop(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread)
 {
 	// For each visible cube pop out the cache
 	for(int i=0; i<num; i++)
 	{
-		caches->pop_cube(&visibleCubes[i], thread);
+		cache->pop_cube(&visibleCubes[i], octreeLevel, thread);
 	}
 }
