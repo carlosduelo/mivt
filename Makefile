@@ -8,7 +8,7 @@ LIBRARY=-lhdf5
 
 all: Objects testPrograms 
 
-Objects: obj/fileUtil.o obj/hdf5File.o obj/lruCache.o obj/cache_GPU_File.o obj/octreeContainer.o obj/octree_completeGPU.o obj/rayCaster.o obj/camera.o
+Objects: obj/fileUtil.o obj/hdf5File.o obj/lruCache.o obj/cache_GPU_File.o obj/octreeContainer.o obj/octree_completeGPU.o obj/rayCaster.o obj/camera.o obj/threadWorker.o
 
 obj/fileUtil.o: inc/FileManager.hpp src/fileUtil.cu
 	$(NVCC) -c $(NFLAGS) $(INCLUDE) src/fileUtil.cu -o obj/fileUtil.o
@@ -33,6 +33,9 @@ obj/rayCaster.o: inc/rayCaster.hpp src/rayCaster.cu
 
 obj/camera.o: inc/Camera.hpp src/Camera.cu
 	$(NVCC) -c $(NFLAGS) $(INCLUDE) src/Camera.cu -o obj/Camera.o
+
+obj/threadWorker.o: inc/threadWorker.hpp src/threadWorker.cu
+	$(NVCC) -c $(NFLAGS) $(INCLUDE) src/threadWorker.cu -o obj/threadWorker.o
 
 testPrograms: bin/testFileManager
 

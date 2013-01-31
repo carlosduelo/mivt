@@ -10,8 +10,12 @@
 #include "config.hpp"
 #include "lruCache.hpp"
 #include "Camera.hpp"
+#include "Octree.hpp"
+#include "rayCaster.hpp"
 #include "channel.hpp"
 #include <lunchbox/thread.h>
+
+#define MAX_WORKS 100
 
 class threadWorker : public lunchbox::Thread
 {
@@ -22,16 +26,19 @@ class threadWorker : public lunchbox::Thread
 		Channel	*	pipe;
 		Cache	*	cache;
 		Octree  *	octree;
+		rayCaster *	raycaster;
 		
 		visibleCube_t * visibleCubesCPU;
                 visibleCube_t * visibleCubesGPU;
 
 		float	*	rays;
 		int		numRays;
-	public:
-		threadWorker(char ** argv, int id_thread, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC);
 
-		~threadWorker()
+		void resetVisibleCubes();
+	public:
+		threadWorker(char ** argv, int id_thread, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions);
+
+		~threadWorker();
 
 		virtual void run();
 };

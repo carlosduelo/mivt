@@ -8,6 +8,12 @@
 
 #include "config.hpp"
 
+typedef struct
+{
+	float3 	ligth_position;
+	float	isosurface;
+} rayCaster_options_t;
+
 class rayCaster
 {
 	private:
@@ -20,7 +26,7 @@ class rayCaster
 		// rayCasing Parameters
 		float step;
 	public:
-		rayCaster(float isosurface, float3 lposition);
+		rayCaster(rayCaster_options_t * options);
 
 		~rayCaster();
 

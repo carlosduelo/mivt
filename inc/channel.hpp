@@ -31,6 +31,7 @@ class Channel
 				return false;
 			
 			queue->push(work);
+			return true;
 		}
 
 		work_packet_t pop()

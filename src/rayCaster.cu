@@ -272,10 +272,10 @@ __global__ void cuda_rayCaster(int numRays, float3 ligth, float3 origin, float *
 ******************************************************************************************************
 */
 
-rayCaster::rayCaster(float isosurface, float3 lposition)
+rayCaster::rayCaster(rayCaster_options_t * options)
 {
-	iso    = isosurface;
-	lightPosition = lposition;
+	iso    		= options->isosurface;
+	lightPosition 	= options->ligth_position;
 }
 
 rayCaster::~rayCaster()
