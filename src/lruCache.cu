@@ -1,5 +1,5 @@
 #include "lruCache.hpp"
-#include <Exceptions.hpp>
+#include <exception>
 #include <iostream>
 #include <fstream>
 #include <strings.h>
@@ -158,7 +158,7 @@ Cache::Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int
 	else
 	{
 		std::cerr<<"Error: cache options error"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 }
 

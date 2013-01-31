@@ -1,7 +1,7 @@
 #include "Octree.hpp"
 #include "mortonCodeUtil.hpp"
 #include "cuda_help.hpp"
-#include "Exceptions.hpp"
+#include <exception>
 #include <iostream>
 #include <fstream>
 
@@ -689,7 +689,7 @@ __global__ void cuda_resetState(int numElements, int * stackActual, index_node_t
  ******************************************************************************************************
  */
 
-Octree_completeGPU::Octree_completeGPU(OctreeContainer * oc, int p_maxLevel, int p_maxRays) : Octree(oc, p_maxLevel)
+Octree_completeGPU::Octree_completeGPU(OctreeContainer * oc, int p_maxRays) : Octree(oc)
 {
 	maxRays = p_maxRays;
 
@@ -698,7 +698,7 @@ Octree_completeGPU::Octree_completeGPU(OctreeContainer * oc, int p_maxLevel, int
 	if (cudaSuccess != cudaMalloc(&GstackIndex, maxRays*STACK_DIM*sizeof(index_node_t)))
 	{
 		std::cerr<<"Fail"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 	else
 		std::cerr<<"OK"<<std::endl;
@@ -707,7 +707,7 @@ Octree_completeGPU::Octree_completeGPU(OctreeContainer * oc, int p_maxLevel, int
 	if (cudaSuccess != cudaMalloc(&GstackActual, maxRays*sizeof(int)))
 	{
 		std::cerr<<"Fail"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 	else
 		std::cerr<<"OK"<<std::endl;
@@ -716,7 +716,7 @@ Octree_completeGPU::Octree_completeGPU(OctreeContainer * oc, int p_maxLevel, int
 	if (cudaSuccess != cudaMalloc(&GstackLevel, maxRays*STACK_DIM*sizeof(int)))
 	{
 		std::cerr<<"Fail"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 	else
 		std::cerr<<"OK"<<std::endl;
@@ -727,6 +727,44 @@ Octree_completeGPU::~Octree_completeGPU()
 	cudaFree(GstackActual);
 	cudaFree(GstackIndex);
 	cudaFree(GstackLevel);
+}
+
+
+void Octree_completeGPU::setMaxRays(int p_maxRays)
+{
+	cudaFree(GstackActual);
+	cudaFree(GstackIndex);
+	cudaFree(GstackLevel);
+
+	maxRays = p_maxRays;
+
+	// Create octree State
+	std::cerr<<"Allocating memory octree state stackIndex "<<maxRays*STACK_DIM*sizeof(index_node_t)/1024.0f/1024.0f<<" MB: ";
+	if (cudaSuccess != cudaMalloc(&GstackIndex, maxRays*STACK_DIM*sizeof(index_node_t)))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw;
+	}
+	else
+		std::cerr<<"OK"<<std::endl;
+
+	std::cerr<<"Allocating memory octree state stackActual "<<maxRays*sizeof(int)/1024.0f/1024.0f<<" MB: ";
+	if (cudaSuccess != cudaMalloc(&GstackActual, maxRays*sizeof(int)))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw;
+	}
+	else
+		std::cerr<<"OK"<<std::endl;
+
+	std::cerr<<"Allocating memory octree state stackLevel "<<maxRays*STACK_DIM*sizeof(int)/1024.0f/1024.0f<<" MB: ";
+	if (cudaSuccess != cudaMalloc(&GstackLevel, maxRays*STACK_DIM*sizeof(int)))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw;
+	}
+	else
+		std::cerr<<"OK"<<std::endl;
 }
 
 void Octree_completeGPU::resetState(cudaStream_t stream)

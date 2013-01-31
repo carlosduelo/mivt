@@ -1,5 +1,5 @@
 #include "lruCache.hpp"
-#include <Exceptions.hpp>
+#include <exception>
 #include <iostream>
 #include <fstream>
 
@@ -14,7 +14,7 @@ cache_GPU_File::cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, 
 	if (cudaSuccess != cudaMalloc((void**)&cacheData, maxElements*offsetCube*sizeof(float)))
 	{
 		std::cerr<<"LRUCache: Error creating gpu cache"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 	#if 0
 	std::cerr<<"Creating cache in CPU: "<< maxElementsCPU*offsetCube*sizeof(float)/1024/1024<<" MB: "<<std::endl;

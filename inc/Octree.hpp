@@ -30,6 +30,8 @@ class OctreeContainer
 
 		int getnLevels();
 
+		int getMaxLevel();
+
 		float getIsosurface();
 
 		index_node_t ** getOctree();
@@ -49,10 +51,10 @@ class Octree
 		int	*	sizes;
 
 	public:
-		Octree(OctreeContainer * oc, int p_maxLevel)
+		Octree(OctreeContainer * oc)
 		{
-			maxLevel        = p_maxLevel;
-			currentLevel    = p_maxLevel;
+			maxLevel        = oc->getMaxLevel();
+			currentLevel    = oc->getMaxLevel();
 			nLevels         = oc->getnLevels();
 			octree          = oc->getOctree();
 			sizes           = oc->getSizes();
@@ -96,9 +98,11 @@ class Octree_completeGPU : public Octree
 		index_node_t * 	GstackIndex;
 		int	*	GstackLevel;
 	public:
-		Octree_completeGPU(OctreeContainer * oc, int p_maxLevel, int p_maxRays);
+		Octree_completeGPU(OctreeContainer * oc, int p_maxRays);
 
 		~Octree_completeGPU();
+
+		void setMaxRays(int p_maxRays);
 
 		void resetState(cudaStream_t stream);
 

@@ -6,7 +6,7 @@
 
 #include "Camera.hpp"
 #include "cuda_help.hpp"
-#include "Exceptions.hpp"
+#include <exception> 
 #include <math.h>
 #include <iostream>
 #include <fstream>
@@ -32,18 +32,18 @@ Camera::Camera(camera_settings_t * settings)
 	if (height < 1 || width < 1)
 	{
 		std::cerr<<"Camera: display resolution invalid"<<std::endl;
-		throw excepGen;
+		throw ;
 	}
 	if (fov_H < 1 || fov_W < 1 || distance < 1)
 	{
 		std::cerr<<"Camera: invalid camera settings"<<std::endl;
-		throw excepGen;
+		throw ;
 	}
 
 	if (numRayPixel > MAX_ALIASSING || numRayPixel < 1)
 	{
 		std::cerr<<"Camera: invalid super sampling option"<<std::endl;
-		throw excepGen;
+		throw ;
 	}
 
 
@@ -75,18 +75,18 @@ void	Camera::setNewDisplay(camera_settings_t * settings)
 	if (height < 1 || width < 1)
 	{
 		std::cerr<<"Camera: display resolution invalid"<<std::endl;
-		throw excepGen;
+		throw ;
 	}
 	if (fov_H < 1 || fov_W < 1 || distance < 1)
 	{
 		std::cerr<<"Camera: invalid camera settings"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 
 	if (numRayPixel > MAX_ALIASSING || numRayPixel < 1)
 	{
 		std::cerr<<"Camera: invalid super sampling option"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 }
 

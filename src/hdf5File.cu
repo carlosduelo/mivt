@@ -1,6 +1,6 @@
 #include <FileManager.hpp>
 #include <mortonCodeUtil.hpp>
-#include <Exceptions.hpp>
+#include <exception>
 #include <iostream>
 #include <strings.h>
 
@@ -9,25 +9,25 @@ hdf5File::hdf5File(const char * file_name, const char * dataset_name, int p_leve
 	if ((file_id    = H5Fopen(file_name, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
 	{
 		std::cerr<<"hdf5: opening "<<file_name<<std::endl;
-		throw excepFileNotFound;
+		throw;
 	}
 
 	if ((dataset_id = H5Dopen1(file_id, dataset_name)) < 0 )
 	{
 		std::cerr<<"hdf5: unable to open the requested data set "<<dataset_name<<std::endl;
-		throw excepHDF5DataSet;	
+		throw;	
 	}
 
 	if ((spaceid    = H5Dget_space(dataset_id)) < 0)
 	{
 		std::cerr<<"hdf5: unable to open the requested data space"<<std::endl;
-		throw excepGen; 
+		throw; 
 	}
 
 	if ((ndim       = H5Sget_simple_extent_dims (spaceid, dims, NULL)) < 0)
 	{
 		std::cerr<<"hdf5: handling file"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 }
 
@@ -38,7 +38,7 @@ hdf5File::~hdf5File()
 	if ((status = H5Dclose(dataset_id)) < 0)
 	{
 		std::cerr<<"hdf5: unable to close the data set"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 
 
@@ -100,7 +100,7 @@ void hdf5File::readCube(index_node_t index, float * cube)
 	if ((status = H5Sselect_hyperslab(spaceid, H5S_SELECT_SET, offset, NULL, dimR, NULL)) < 0)
 	{
 		std::cerr<<"hdf5: defining hyperslab in the dataset"<<std::endl;
-		throw excepHDF5READ;
+		throw;
 	}
 
 	/*
@@ -110,7 +110,7 @@ void hdf5File::readCube(index_node_t index, float * cube)
 	//if ((memspace = H5Screate_simple(3, dimR, NULL)) < 0)
 	{
 		std::cerr<<"hdf5: defining the memory space"<<std::endl;
-		throw excepHDF5READ;
+		throw;
 	}
 
 
@@ -120,7 +120,7 @@ void hdf5File::readCube(index_node_t index, float * cube)
 	if ((status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset_out, NULL, dimR, NULL)) < 0)
 	{
 		std::cerr<<"hdf5: defining the memory hyperslab"<<std::endl;
-		throw excepHDF5READ;
+		throw;
 	}
 
 	/*
@@ -130,13 +130,13 @@ void hdf5File::readCube(index_node_t index, float * cube)
 	if ((status = H5Dread(dataset_id, H5T_IEEE_F32LE, memspace, spaceid, H5P_DEFAULT, cube)) < 0)
 	{
 		std::cerr<<"hdf5: reading data from hyperslab un the file"<<std::endl;
-		throw excepHDF5READ;
+		throw;
 	}
 
 
 	if ((status = H5Sclose(memspace)) < 0)
 	{
 		std::cerr<<"hdf5: closing dataspace"<<std::endl;
-		throw excepHDF5READ;
+		throw;
 	}
 }

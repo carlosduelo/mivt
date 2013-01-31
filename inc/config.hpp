@@ -21,10 +21,8 @@ typedef struct
 typedef struct
 {
 	int		id;
-	//pthread_t 	id_thread;
-	//pthread_attr_t 	attr_thread;
-	//int		deviceID;
-	//cudaStream_t 	stream;
+	int		deviceID;
+	cudaStream_t 	stream;
 } threadID_t;
 
 typedef struct

@@ -1,5 +1,5 @@
 #include "Octree.hpp"
-#include "Exceptions.hpp"
+#include <exception> 
 #include "cuda_help.hpp"
 #include <iostream>
 #include <fstream>
@@ -28,7 +28,7 @@ OctreeContainer::OctreeContainer(const char * file_name, int p_maxLevel)
 	catch(...)
 	{
 		std::cerr<<"Octree: error opening octree file"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 
 	int magicWord;
@@ -38,7 +38,7 @@ OctreeContainer::OctreeContainer(const char * file_name, int p_maxLevel)
 	if (magicWord != 919278872)
 	{
 		std::cerr<<"Octree: error invalid file format"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 
 	file.read((char*)&isosurface, sizeof(isosurface));
@@ -82,20 +82,20 @@ OctreeContainer::OctreeContainer(const char * file_name, int p_maxLevel)
 	if (cudaSuccess != (cudaMalloc(&octree, (maxLevel+1)*sizeof(index_node_t*))))
 	{
 		std::cerr<<"Octree: error allocating octree in the gpu"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 
 	std::cerr<<"Allocating memory octree CUDA memory "<<total*sizeof(index_node_t)/1024.0f/1024.0f<<" MB: "<<std::endl;
 	if (cudaSuccess != (cudaMalloc(&memoryGPU, total*sizeof(index_node_t))))
 	{
 		std::cerr<<"Octree: error allocating octree in the gpu"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 	std::cerr<<"Allocating memory octree CUDA sizes "<<(maxLevel+1)*sizeof(int)/1024.0f/1024.0f<<" MB: "<<std::endl;
 	if (cudaSuccess != (cudaMalloc(&sizes,   (maxLevel+1)*sizeof(int))))
 	{
 		std::cerr<<"Octree: error allocating octree in the gpu"<<std::endl;
-		throw excepGen;
+		throw;
 	}
 
 	/* Compiando sizes */
@@ -103,7 +103,7 @@ OctreeContainer::OctreeContainer(const char * file_name, int p_maxLevel)
 	if (cudaSuccess != (cudaMemcpy((void*)sizes, (void*)sizesCPU, (maxLevel+1)*sizeof(int), cudaMemcpyHostToDevice)))
 	{
 		std::cerr<<"Fail"<<std::endl;	
-		throw excepGen;
+		throw;
 	}
 	else
 		std::cerr<<"OK"<<std::endl;
@@ -119,7 +119,7 @@ OctreeContainer::OctreeContainer(const char * file_name, int p_maxLevel)
 		if (cudaSuccess != (cudaMemcpy((void*)(memoryGPU+offset), (void*)octreeCPU[i], sizesCPU[i]*sizeof(index_node_t), cudaMemcpyHostToDevice)))
 		{
 			std::cerr<<"Fail"<<std::endl;
-			throw excepGen;
+			throw;
 		}
 		else
 			std::cerr<<"OK"<<std::endl;
@@ -136,7 +136,7 @@ OctreeContainer::OctreeContainer(const char * file_name, int p_maxLevel)
 	if (cudaSuccess != cudaDeviceSynchronize())
 	{
 			std::cerr<<"Fail"<<std::endl;
-			throw excepGen;
+			throw;
 	}
 	else
 		std::cerr<<"OK"<<std::endl;
@@ -160,6 +160,8 @@ OctreeContainer::~OctreeContainer()
 }
 
 int 		OctreeContainer::getnLevels(){ return nLevels; }
+
+int		OctreeContainer::getMaxLevel(){ return maxLevel; }
 
 float 		OctreeContainer::getIsosurface(){ return isosurface; }
 
