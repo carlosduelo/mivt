@@ -162,6 +162,10 @@ Cache::Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int
 	}
 }
 
+Cache::~Cache()
+{
+	delete cache;
+}
 
 int Cache::getCacheLevel()
 {

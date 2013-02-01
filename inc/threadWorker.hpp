@@ -40,6 +40,8 @@ class threadWorker : public lunchbox::Thread
 
 		~threadWorker();
 
+		Channel * getChannel();
+
 		virtual void run();
 };
 

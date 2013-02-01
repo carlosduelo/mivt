@@ -11,7 +11,6 @@
 typedef struct
 {
 	float3 	ligth_position;
-	float	isosurface;
 } rayCaster_options_t;
 
 class rayCaster
@@ -26,9 +25,13 @@ class rayCaster
 		// rayCasing Parameters
 		float step;
 	public:
-		rayCaster(rayCaster_options_t * options);
+		rayCaster(float isosurface, rayCaster_options_t * options);
 
 		~rayCaster();
+
+		void increaseStep();
+
+		void decreaseStep();
 
 		void render(float * rays, int numRays, float3 camera_position, int levelO, int levelC, int nLevel, visibleCube_t * cube, int3 cubeDim, int3 cubeInc, float * buffer, cudaStream_t stream);
 };

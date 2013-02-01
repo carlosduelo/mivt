@@ -4,11 +4,11 @@ CUDACP=sm_20
 CFLAGS=$(OPT) -g -Wall
 NFLAGS=-G $(OPT) -arch=$(CUDACP) -Xcompiler '$(CFLAGS)'
 INCLUDE=-Iinc/
-LIBRARY=-lhdf5 
+LIBRARY=-Llib/ -lLunchbox -lhdf5 -lm
 
 all: Objects testPrograms 
 
-Objects: obj/fileUtil.o obj/hdf5File.o obj/lruCache.o obj/cache_GPU_File.o obj/octreeContainer.o obj/octree_completeGPU.o obj/rayCaster.o obj/camera.o obj/threadWorker.o
+Objects: obj/fileUtil.o obj/hdf5File.o obj/lruCache.o obj/cache_GPU_File.o obj/octreeContainer.o obj/octree_completeGPU.o obj/rayCaster.o obj/camera.o obj/threadWorker.o obj/threadMaster.o
 
 obj/fileUtil.o: inc/FileManager.hpp src/fileUtil.cu
 	$(NVCC) -c $(NFLAGS) $(INCLUDE) src/fileUtil.cu -o obj/fileUtil.o
@@ -37,10 +37,16 @@ obj/camera.o: inc/Camera.hpp src/Camera.cu
 obj/threadWorker.o: inc/threadWorker.hpp src/threadWorker.cu
 	$(NVCC) -c $(NFLAGS) $(INCLUDE) src/threadWorker.cu -o obj/threadWorker.o
 
-testPrograms: bin/testFileManager
+obj/threadMaster.o: inc/threadMaster.hpp src/threadMaster.cu
+	$(NVCC) -c $(NFLAGS) $(INCLUDE) src/threadMaster.cu -o obj/threadMaster.o
+
+testPrograms: bin/testFileManager bin/testThreads
 
 bin/testFileManager: src/testFileManager.cu
 	$(NVCC) $(NFLAGS) $(INCLUDE) obj/fileUtil.o obj/hdf5File.o src/testFileManager.cu -o bin/testFileManager $(LIBRARY)
+
+bin/testThreads: src/testThreads.cu
+	$(NVCC) $(NFLAGS) $(INCLUDE) obj/fileUtil.o obj/hdf5File.o obj/lruCache.o obj/cache_GPU_File.o obj/octreeContainer.o obj/octree_completeGPU.o  obj/rayCaster.o obj/Camera.o  obj/threadWorker.o obj/threadMaster.o src/testThreads.cu -o bin/testThreads $(LIBRARY)
 
 clean:
 	-rm bin/* obj/* 

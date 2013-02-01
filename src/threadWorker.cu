@@ -2,7 +2,7 @@
 #include <exception>
 #include <iostream>
 #include <fstream>
-#include "strings.h"
+#include <strings.h>
 
 threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions)
 {
@@ -20,7 +20,7 @@ threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p
 	camera		= p_camera;
 	cache 		= p_cache;
 	pipe		= new Channel(MAX_WORKS);
-	raycaster	= new rayCaster(rCasterOptions);
+	raycaster	= new rayCaster(p_octreeC->getIsosurface(), rCasterOptions);
 
 	int2 tileDim	= camera->getTileDim();
 	numRays		= tileDim.x * tileDim.y * camera->getNumRayPixel();
@@ -63,9 +63,14 @@ threadWorker::~threadWorker()
 {
 	delete pipe;
 	delete octree;
-	delete rayCaster;
+	delete raycaster;
 	cudaFree(visibleCubesGPU);
 	cudaFreeHost(visibleCubesCPU);
+}
+
+Channel * threadWorker::getChannel()
+{
+	return pipe;
 }
 
 void threadWorker::resetVisibleCubes()
