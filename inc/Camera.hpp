@@ -100,18 +100,18 @@ class Camera
 
 		float3	get_position();
 
-		void		Move(float3 Direction);
+		void	Move(float3 Direction);
 
-		void		RotateX(float Angle);
+		void	RotateX(float Angle);
 
-		void		RotateY(float Angle);
+		void	RotateY(float Angle);
 		
-		void		RotateZ(float Angle);
+		void	RotateZ(float Angle);
 
-		void		MoveForward(float Distance);
+		void	MoveForward(float Distance);
 
-		void		MoveUpward(float Distance);
+		void	MoveUpward(float Distance);
 
-		void		StrafeRight(float Distance);	
+		void	StrafeRight(float Distance);	
 };
 #endif/*_CAMERA_H_*/

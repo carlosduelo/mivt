@@ -276,10 +276,21 @@ rayCaster::rayCaster(float isosurface, rayCaster_options_t * options)
 {
 	iso    		= isosurface;
 	lightPosition 	= options->ligth_position;
+	step		= 0.5f;
 }
 
 rayCaster::~rayCaster()
 {
+}
+
+void rayCaster::increaseStep()
+{
+	step += 0.01f;
+}
+
+void rayCaster::decreaseStep()
+{
+	step += step == 0.01f ? 0.0f : 0.01f;
 }
 
 void rayCaster::render(float * rays, int numRays, float3 camera_position, int levelO, int levelC, int nLevel, visibleCube_t * cube, int3 cubeDim, int3 cubeInc, float * pixelBuffer, cudaStream_t stream)

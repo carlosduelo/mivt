@@ -25,9 +25,22 @@ typedef struct
 	cudaStream_t 	stream;
 } threadID_t;
 
+// Octree options
+#define UP_LEVEL_OCTREE		0
+#define DOWN_LEVEL_OCTREE	1
+// RayCasting options
+#define INCREASE_STEP		2
+#define	DECREASE_STEP		3
+// Image
+#define CHANGE_ANTIALIASSING	4
+#define NEW_TILE		5
+#define END			999
+
 typedef struct
 {
-	int work;
+	int 	work_id;
+	int2	tile;
+	float * pixel_buffer;
 	
 } work_packet_t;
 

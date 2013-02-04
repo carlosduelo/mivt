@@ -34,6 +34,10 @@ class threadWorker : public lunchbox::Thread
 		float	*	rays;
 		int		numRays;
 
+		void createStructures();
+
+		void destroyStructures();
+
 		void resetVisibleCubes();
 	public:
 		threadWorker(char ** argv, int id_thread, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions);

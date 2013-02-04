@@ -40,5 +40,8 @@ int main(int argc, char ** argv)
 
 	threadMaster * mivt = new threadMaster(&argv[1], &params);
 
+	mivt->increaseLevelOctree();
+	mivt->decreaseLevelOctree();
+
 	delete mivt;
 }
