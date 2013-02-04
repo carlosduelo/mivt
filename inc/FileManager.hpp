@@ -10,6 +10,10 @@
 #include <config.hpp>
 #include <cutil_math.h>
 #include <hdf5.h>
+#include <exception> 
+#include <iostream>
+#include <fstream>
+#include "strings.h"
 
 class FileManager
 {
@@ -33,7 +37,6 @@ class FileManager
 		virtual ~FileManager() { }
 };
 
-
 class hdf5File : public FileManager
 {
 	private:
@@ -52,7 +55,4 @@ class hdf5File : public FileManager
 
 		void readCube(index_node_t index, float * cube);
 };
-
-extern FileManager * OpenFile(char ** argv, int p_levelCube, int p_nLevels, int3 p_cubeDim, int3 p_cubeInc);
-
 #endif

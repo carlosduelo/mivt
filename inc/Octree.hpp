@@ -60,7 +60,7 @@ class Octree
 			sizes           = oc->getSizes();
 		}
 
-		virtual ~Octree() {};
+		virtual ~Octree() {}
 
 		void	increaseLevel()
 		{

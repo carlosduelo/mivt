@@ -22,16 +22,17 @@ threadMaster::threadMaster(char ** argv, initParams_masterWorker_t * initParams)
 
 	cache	= new Cache(&argv[1], initParams->maxElementsCache, initParams->cubeDim, initParams->cubeInc, initParams->levelCube, octree->getnLevels());
 
-
-
 	workers 	= new worker_t[numWorkers];
 	int idW 	= 1;
 	for(int i=0; i<numWorkers; i++)
 	{
-		workers[i].worker 	= new threadWorker(argv, idW, initParams->deviceID, camera, cache, octree, &(initParams->rayCasterOptions));
+		workers[i].worker 	= new threadWorker(&argv[5], idW, initParams->deviceID, camera, cache, octree, &(initParams->rayCasterOptions));
 		workers[i].pipe 	= workers[i].worker->getChannel();
 		idW <<= 1;
+		//
+		workers[i].worker->run();
 	}
+
 
 }
 

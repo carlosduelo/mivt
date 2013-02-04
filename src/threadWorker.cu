@@ -53,6 +53,7 @@ threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p
 	}
 	else
 	{
+	std::cerr<<argv[0]<<std::endl;
 		std::cerr<<"Error: octree option error"<<std::endl;
 		throw;
 	}

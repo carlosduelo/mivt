@@ -8,7 +8,7 @@
 #define _LRU_CACHE_H_
 
 #include "config.hpp"
-#include "FileManager.hpp"
+#include "fileUtil.hpp"
 #include "cutil_math.h"
 #include <lunchbox/lock.h>
 
@@ -75,13 +75,13 @@ class lruCache
 	public:
 		lruCache(int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 
-		virtual ~lruCache() {};
+		virtual ~lruCache() {}
 
-		virtual	int getCacheLevel();
+		virtual	int getCacheLevel() = 0;
 
-		virtual void push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+		virtual void push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread) = 0;
 
-                virtual void pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);		
+                virtual void pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread) = 0;		
 };
 
 class cache_GPU_File : public lruCache

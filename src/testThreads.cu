@@ -13,7 +13,7 @@ int main(int argc, char ** argv)
 	initParams_masterWorker_t params;
 
 	// Workers
-	params.numWorkers	= 1;
+	params.numWorkers	= 2;
 	params.deviceID		= 0;
 
 	// Cache
@@ -37,4 +37,8 @@ int main(int argc, char ** argv)
 	params.displayOptions.numRayPixel	= 1;
 	params.displayOptions.tileDim		= make_int2(32,32);
 	params.displayOptions.position		= make_float3(128.0f, 128.0f, 512.0f);
+
+	threadMaster * mivt = new threadMaster(&argv[1], &params);
+
+	delete mivt;
 }
