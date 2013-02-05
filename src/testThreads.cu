@@ -13,7 +13,7 @@ int main(int argc, char ** argv)
 	initParams_masterWorker_t params;
 
 	// Workers
-	params.numDevices	= 1;
+	params.numDevices	= 2;
 	params.numWorkers[0]	= 2;
 	params.numWorkers[1]	= 2;
 	params.numWorkers[2]	= 2;

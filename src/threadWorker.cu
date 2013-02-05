@@ -19,7 +19,7 @@ threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p
 	else
 		std::cerr<<"OK"<<std::endl;
 
-	std::cerr<<"Thread "<<id.id<<" on device "<<"Createing cudaStream: ";
+	std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" Createing cudaStream: ";
 	if (cudaSuccess != cudaStreamCreate(&id.stream))
 	{
 		std::cerr<<"Fail"<<std::endl;
@@ -69,7 +69,7 @@ void threadWorker::destroyStructures()
 
 void threadWorker::createStructures()
 {
-	std::cerr<<"Thread "<<id.id<<" on device "<<"Allocating memory visibleCubesCPU "<<maxRays*sizeof(visibleCube_t)/1024/1024 <<" MB : ";
+	std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" Allocating memory visibleCubesCPU "<<maxRays*sizeof(visibleCube_t)/1024/1024 <<" MB : ";
 	if (cudaSuccess != cudaHostAlloc((void**)&visibleCubesCPU, maxRays*sizeof(visibleCube_t), cudaHostAllocDefault))
 	{
 		std::cerr<<"Fail"<<std::endl;
@@ -77,7 +77,7 @@ void threadWorker::createStructures()
 	}
 	else
 		std::cerr<<"OK"<<std::endl;
-        std::cerr<<"Thread "<<id.id<<" on device "<<"Allocating memory visibleCubesGPU "<<maxRays*sizeof(visibleCube_t)/1024/1024 <<" MB : ";
+        std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" Allocating memory visibleCubesGPU "<<maxRays*sizeof(visibleCube_t)/1024/1024 <<" MB : ";
 	if (cudaSuccess != cudaMalloc((void**)&visibleCubesGPU, maxRays*sizeof(visibleCube_t)))
 	{
 		std::cerr<<"Fail"<<std::endl;
@@ -89,7 +89,7 @@ void threadWorker::createStructures()
 	resetVisibleCubes();
 
 	// Create rays
-        std::cerr<<"Thread "<<id.id<<" on device "<<"Allocating memory rays "<<maxRays*3*sizeof(float)/1024/1024 <<" MB : ";
+        std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" Allocating memory rays "<<maxRays*3*sizeof(float)/1024/1024 <<" MB : ";
 	if (cudaSuccess != cudaMalloc((void**)&rays, 3*maxRays*sizeof(float)))
 	{
 		std::cerr<<"Fail"<<std::endl;
@@ -99,7 +99,7 @@ void threadWorker::createStructures()
 		std::cerr<<"OK"<<std::endl;
 
 	// Create pixle_buffer
-        std::cerr<<"Thread "<<id.id<<" on device "<<"Allocating memory pixel_buffer "<<maxRays*3*sizeof(float)/1024/1024 <<" MB : ";
+        std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" Allocating memory pixel_buffer "<<maxRays*3*sizeof(float)/1024/1024 <<" MB : ";
 	if (cudaSuccess != cudaMalloc((void**)&pixel_buffer, 3*maxRays*sizeof(float)))
 	{
 		std::cerr<<"Fail"<<std::endl;
@@ -171,7 +171,7 @@ void threadWorker::run()
 			}
 			case END:
 			{
-				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<"End thread work"<<std::endl;
+				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<" End thread work"<<std::endl;
 				end = true;
 				break;
 			}

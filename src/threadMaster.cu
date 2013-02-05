@@ -5,9 +5,20 @@
 
 threadMaster::threadMaster(char ** argv, initParams_masterWorker_t * initParams)
 {
+	if (initParams->numDevices > MAX_DEVICES)
+	{
+		std::cerr<<"Max number of devices are "<<MAX_DEVICES<<" not "<<initParams->numDevices<<std::endl;
+		throw;
+	} 
+
+
+	numDevices = initParams->numDevices;
 	numWorkers = 0;
 	for(int i=0; i<initParams->numDevices; i++)
 	{
+		devicesID[i] 		= initParams->deviceID[i];
+		numWorkersDevice[i]	= initParams->numWorkers[i];
+
 		if (initParams->numWorkers[i] > MAX_WORKERS || initParams->numWorkers[i] < 1)
 		{
 			std::cerr<<"Error: it has to be 1 to 32 workers"<<std::endl;
@@ -47,7 +58,7 @@ threadMaster::threadMaster(char ** argv, initParams_masterWorker_t * initParams)
 		for(int j=0; j<initParams->numWorkers[i]; j++)
 		{
 			workers[index].worker 	= new threadWorker(&argv[5], idW, initParams->deviceID[i], camera, cache[i], octree[i], &(initParams->rayCasterOptions));
-			workers[index].pipe 	= workers[i].worker->getChannel();
+			workers[index].pipe 	= workers[index].worker->getChannel();
 			idW <<= 1;
 			//
 			workers[index].worker->start();
@@ -66,10 +77,29 @@ threadMaster::~threadMaster()
 		workers[i].pipe->push(work);
 
 	delete camera;
-	delete cache;
-	delete octree;
-	for(int i=0; i<numWorkers; i++)
-		delete workers[i].worker;
+
+	int index = 0;
+	for(int i=0; i<numDevices; i++)
+	{
+		std::cerr<<"Select device "<<devicesID[i]<<": ";
+		if (cudaSuccess != cudaSetDevice(devicesID[i]))
+		{
+			std::cerr<<"Fail"<<std::endl;
+			throw;
+		}
+		else
+			std::cerr<<"OK"<<std::endl;
+
+		for(int j=0; j<numWorkersDevice[i]; j++)
+		{
+			workers[index].worker->join();
+			delete workers[index].worker;
+			index++;
+		}
+
+		delete cache[i];
+		delete octree[i];
+	}
 }
 
 // Camera options
@@ -85,8 +115,13 @@ void	threadMaster::increaseSampling()
 	work_packet_t work;
 	work.work_id = CHANGE_ANTIALIASSING; 
 
-	for(int i=0; i<numWorkers; i++)
-		workers[i].pipe->push(work);
+	int index = 0;
+	for(int i=0; i<numDevices; i++)
+		for(int j=0; j<numWorkersDevice[i]; j++)
+		{
+			workers[index].pipe->push(work);
+			index++;
+		}
 }
 
 void	threadMaster::decreaseSampling()
@@ -96,8 +131,13 @@ void	threadMaster::decreaseSampling()
 	work_packet_t work;
 	work.work_id = CHANGE_ANTIALIASSING; 
 
-	for(int i=0; i<numWorkers; i++)
-		workers[i].pipe->push(work);
+	int index = 0;
+	for(int i=0; i<numDevices; i++)
+		for(int j=0; j<numWorkersDevice[i]; j++)
+		{
+			workers[index].pipe->push(work);
+			index++;
+		}
 }
 
 void	threadMaster::resetCameraPosition()
@@ -145,8 +185,13 @@ void threadMaster::increaseLevelOctree()
 	work_packet_t work;
 	work.work_id = UP_LEVEL_OCTREE; 
 
-	for(int i=0; i<numWorkers; i++)
-		workers[i].pipe->push(work);
+	int index = 0;
+	for(int i=0; i<numDevices; i++)
+		for(int j=0; j<numWorkersDevice[i]; j++)
+		{
+			workers[index].pipe->push(work);
+			index++;
+		}
 }
 
 void threadMaster::decreaseLevelOctree()
@@ -154,8 +199,13 @@ void threadMaster::decreaseLevelOctree()
 	work_packet_t work;
 	work.work_id = DOWN_LEVEL_OCTREE; 
 
-	for(int i=0; i<numWorkers; i++)
-		workers[i].pipe->push(work);
+	int index = 0;
+	for(int i=0; i<numDevices; i++)
+		for(int j=0; j<numWorkersDevice[i]; j++)
+		{
+			workers[index].pipe->push(work);
+			index++;
+		}
 }
 
 // Ray Casting
@@ -164,8 +214,13 @@ void threadMaster::increaseStep()
 	work_packet_t work;
 	work.work_id = INCREASE_STEP; 
 
-	for(int i=0; i<numWorkers; i++)
-		workers[i].pipe->push(work);
+	int index = 0;
+	for(int i=0; i<numDevices; i++)
+		for(int j=0; j<numWorkersDevice[i]; j++)
+		{
+			workers[index].pipe->push(work);
+			index++;
+		}
 }
 
 void threadMaster::decreaseStep()
@@ -173,8 +228,13 @@ void threadMaster::decreaseStep()
 	work_packet_t work;
 	work.work_id = DECREASE_STEP; 
 
-	for(int i=0; i<numWorkers; i++)
-		workers[i].pipe->push(work);
+	int index = 0;
+	for(int i=0; i<numDevices; i++)
+		for(int j=0; j<numWorkersDevice[i]; j++)
+		{
+			workers[index].pipe->push(work);
+			index++;
+		}
 }
 
 // Cache options

@@ -8,6 +8,7 @@
 #define _THREAD_MASTER_H_
 
 #define MAX_WORKERS 32
+#define MAX_DEVICES 4
 
 #include "threadWorker.hpp"
 
@@ -15,8 +16,8 @@ typedef struct
 {
 	// worker options
 	int			numDevices;
-	int			numWorkers[MAX_WORKERS];
-	int			deviceID[MAX_WORKERS];
+	int			numWorkers[MAX_DEVICES];
+	int			deviceID[MAX_DEVICES];
 
 	// rayCaster Options
 	rayCaster_options_t  	rayCasterOptions;
@@ -25,7 +26,7 @@ typedef struct
 	camera_settings_t 	displayOptions;
 
 	// Cache Options
-	int			maxElementsCache[MAX_WORKERS];
+	int			maxElementsCache[MAX_DEVICES];
 	int3			cubeDim;
 	int			cubeInc;
 	int			levelCube;
@@ -44,12 +45,15 @@ typedef struct
 class threadMaster
 {
 	private:
+		int			numDevices;
+		int			devicesID[MAX_DEVICES];
+		int			numWorkersDevice[MAX_DEVICES];
 		worker_t *		workers;
 		int			numWorkers;
 
 		Camera	*		camera;
-		Cache	*		cache[MAX_WORKERS];
-		OctreeContainer *	octree[MAX_WORKERS];
+		Cache	*		cache[MAX_DEVICES];
+		OctreeContainer *	octree[MAX_DEVICES];
 	public:
 		threadMaster(char ** argv, initParams_masterWorker_t * initParams);
 
