@@ -1,4 +1,6 @@
 #include "threadMaster.hpp"
+#include "FreeImage.h"
+#include <exception>
 #include <iostream>
 #include <fstream>
 
@@ -50,5 +52,40 @@ int main(int argc, char ** argv)
 	mivt->increaseLevelOctree();
 	mivt->decreaseLevelOctree();
 
+	float * buffer = 0;
+	std::cerr<<"Allocating pixel buffer: ";
+	if (cudaSuccess != cudaMallocHost((void**)&buffer, 3*params.displayOptions.height*params.displayOptions.width*sizeof(float)))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw;
+	}
+	else
+		std::cerr<<"Ok"<<std::endl;
+
+	FreeImage_Initialise();
+	FIBITMAP * bitmap = FreeImage_Allocate(params.displayOptions.height, params.displayOptions.width, 24);
+	RGBQUAD color;
+
+
+	mivt->createFrame(buffer);
+
+#if 0
+	for(int i=0; i<params.displayOptions.height; i++)
+		for(int j=0; j<params.displayOptions.width; j++)
+                {
+			int id = i*params.displayOptions.width + j;
+			color.rgbRed 	= buffer[id*3]*255;
+			color.rgbGreen 	= buffer[id*3+1]*255;
+			color.rgbBlue 	= buffer[id*3+2]*255;
+			FreeImage_SetPixelColor(bitmap, i, j, &color);
+		}
+
+	std::stringstream name;
+        name<<"prueba"<<0<<".png";
+        FreeImage_Save(FIF_PNG, bitmap, name.str().c_str(), 0);
+#endif
+
+	FreeImage_DeInitialise();
 	delete mivt;
+	cudaFreeHost(buffer);
 }

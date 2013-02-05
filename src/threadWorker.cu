@@ -135,8 +135,8 @@ threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p
 	pipe		= new Channel(MAX_WORKS);
 	raycaster	= new rayCaster(p_octreeC->getIsosurface(), rCasterOptions);
 	int2 tileDim	= camera->getTileDim();
-	numRays		= tileDim.x * tileDim.y * camera->getNumRayPixel();
-	maxRays		= tileDim.x * tileDim.y * camera->getMaxRayPixel();
+	numRays		= tileDim.x * tileDim.y * camera->getNumRayPixel() * camera->getNumRayPixel();
+	maxRays		= tileDim.x * tileDim.y * camera->getMaxRayPixel() * camera->getMaxRayPixel();
 
 	createStructures();
 
@@ -321,7 +321,10 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 
 	// Refactor pixel_buffer and copy
 	refactorPixelBuffer(numPixels);
-	cudaMemcpyAsync((void*) buffer, (const void*) pixel_buffer, 3*numPixels*sizeof(float), cudaMemcpyHostToDevice, id.stream);
+
+	// DANGER, I am not sure, this works
+	cudaMemcpy2DAsync((void*)buffer, 3*camera->getWidth()*sizeof(float), (void*) pixel_buffer, 3*tileDim.y*sizeof(float), 3*tileDim.y*sizeof(float), 3*tileDim.x, cudaMemcpyDeviceToHost, id.stream);
+
 	if (cudaSuccess != cudaStreamSynchronize(id.stream))
 	{
 		std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
@@ -389,7 +392,7 @@ void threadWorker::run()
 			}
 			case NEW_TILE:
 			{
-				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<"New Tile"<<std::endl;
+				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<" New Tile"<<std::endl;
 				createFrame(work.tile, work.pixel_buffer);
 				break;
 			}
