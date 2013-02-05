@@ -240,4 +240,21 @@ void threadMaster::decreaseStep()
 // Cache options
 
 // Frame creation
+void threadMaster::createFrame(float * pixel_buffer)
+{
+	int  W		= camera->getHeight();
+	int  H		= camera->getWidth();
+	int2 tileDim 	= camera->getTileDim();
 
+	int  i = H/tileDim.x;
+	int  j = W/tileDim.y;
+
+	for(int ii=0; ii<i; ii++)
+		for(int jj=0; jj<j; jj++)
+		{
+			work_packet_t work;
+			work.work_id 		= NEW_TILE;
+			work.tile 		= make_int2(ii,jj);
+			//work.pixel_buffer 	= 2;  
+		}
+}

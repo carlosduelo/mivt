@@ -86,6 +86,8 @@ class Camera
 
 		float	getWidth_screen();
 
+		float 	getDistance();
+
 		int2	getTileDim();
 
 		int	getNumRayPixel();

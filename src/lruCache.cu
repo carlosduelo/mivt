@@ -149,6 +149,21 @@ lruCache::lruCache(int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_level
 	lock = new lunchbox::Lock();
 }
 
+int lruCache::getCacheLevel()
+{
+	return levelCube;
+}
+
+int3 lruCache::getCubeDim()
+{
+	return cubeDim;
+}
+
+int3 lruCache::getCubeInc()
+{
+	return cubeInc;
+}
+
 Cache::Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels)
 {
 	if (strcmp(argv[0], "GPU_FILE") == 0)
@@ -172,12 +187,25 @@ int Cache::getCacheLevel()
 	return cache->getCacheLevel();
 }
 
+int3 Cache::getCubeDim()
+{
+	return cache->getCubeDim();
+}
+
+int3 Cache::getCubeInc()
+{
+	return cache->getCubeInc();
+}
+
 void Cache::push(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread)
 {
 	// For each visible cube push into the cache
 	for(int i=0; i<num; i++)
 	{
-		cache->push_cube(&visibleCubes[i], octreeLevel, thread);
+		if (visibleCubes[i].state == NOCACHED || visibleCubes[i].state == CUBE)
+		{
+			cache->push_cube(&visibleCubes[i], octreeLevel, thread);
+		}
 	}
 }
 

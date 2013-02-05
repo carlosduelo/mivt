@@ -93,6 +93,7 @@ class threadMaster
 		// Cache options
 
 		// Frame creation
+		void createFrame(float * pixel_buffer);
 
 		~threadMaster();
 };

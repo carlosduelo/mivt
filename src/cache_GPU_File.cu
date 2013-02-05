@@ -32,11 +32,6 @@ cache_GPU_File::~cache_GPU_File()
 	cudaFree(cacheData);
 }
 
-int cache_GPU_File::getCacheLevel()
-{
-	return levelCube;
-}
-
 void cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
 {
 	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));

@@ -113,6 +113,8 @@ float	Camera::getHeight_screen(){ return height_screen; }
 
 float	Camera::getWidth_screen(){ return width_screen; }
 
+float 	Camera::getDistance(){ return distance; } 
+
 int2	Camera::getTileDim(){ return tileDim; }
 
 int	Camera::getNumRayPixel(){ return numRayPixel*numRayPixel; }

@@ -77,7 +77,11 @@ class lruCache
 
 		virtual ~lruCache() {}
 
-		virtual	int getCacheLevel() = 0;
+		int3 getCubeDim();
+
+		int3 getCubeInc();
+
+		int getCacheLevel();
 
 		virtual void push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread) = 0;
 
@@ -93,8 +97,6 @@ class cache_GPU_File : public lruCache
 		cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 
 		~cache_GPU_File();
-
-		int getCacheLevel();
 
 		void push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
 
@@ -112,6 +114,10 @@ class Cache
 		~Cache();
 
 		int getCacheLevel();
+
+		int3 getCubeDim();
+
+		int3 getCubeInc();
 
 		void push(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread);
 
