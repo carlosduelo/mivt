@@ -249,11 +249,15 @@ void threadMaster::createFrame(float * pixel_buffer)
 	int  i = H/tileDim.x;
 	int  j = W/tileDim.y;
 
+	work_packet_t work;
+	work.work_id = NEW_FRAME;
+	for(int index=0; index<numWorkers; index++)
+		workers[index].pipe->push(work);
+
 	int index = 0;
 	for(int ii=0; ii<i; ii++)
 		for(int jj=0; jj<j; jj++)
 		{
-			work_packet_t work;
 			work.work_id 		= NEW_TILE;
 			work.tile 		= make_int2(ii,jj);
 			work.pixel_buffer 	= pixel_buffer + (tileDim.x*tileDim.y) * (work.tile.x * tileDim.y + work.tile.y);
@@ -263,4 +267,11 @@ void threadMaster::createFrame(float * pixel_buffer)
 			if (index == numWorkers)
 				index = 0;  
 		}
+
+	work.work_id = END_FRAME;
+	for(int index=0; index<numWorkers; index++)
+		workers[index].pipe->push(work);
+
+	for(int index=0; index<numWorkers; index++)
+		workers[index].worker->waitFinishFrame();
 }

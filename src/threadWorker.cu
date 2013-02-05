@@ -101,6 +101,13 @@ __global__ void cuda_createRays_4(int2 tile, int2 tileDim, float * rays, int num
 	}
 }
 
+void sendSignalToMaster(cudaStream_t stream, cudaError_t status, void *data)
+{
+	threadWorker * worker = (threadWorker*) data;
+	
+	worker->signalFinishFrame();	
+}
+
 /*
  **************************************************************************************************************************************************************************
  ++++++++++++++++++++++++++++++++++++++++++++++++++++++ METHODS CPU++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -112,6 +119,7 @@ threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p
 	// Setting id thread
 	id.id 		= id_thread;
 	id.deviceID 	= deviceID;
+	numWorks	= 0;
 	
 	std::cerr<<"Thread: " << id.id<<" started device "<<id.deviceID<<": ";
 	if (cudaSuccess != cudaSetDevice(id.deviceID))
@@ -292,7 +300,6 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
 			throw;
 		}
-
 		cache->push(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
                 int numP = 0;
                 for(int i=0; i<numRays; i++)
@@ -311,9 +318,7 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
 			throw;
 		}
-
                 raycaster->render(rays, numRays, camera->get_position(), octree->getOctreeLevel(), cache->getCacheLevel(), octree->getnLevels(), visibleCubesGPU, cache->getCubeDim(), cache->getCubeInc(), pixel_buffer, id.stream);
-
 		cache->pop(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
 
                 iterations++;
@@ -325,13 +330,30 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 	// DANGER, I am not sure, this works
 	cudaMemcpy2DAsync((void*)buffer, 3*camera->getWidth()*sizeof(float), (void*) pixel_buffer, 3*tileDim.y*sizeof(float), 3*tileDim.y*sizeof(float), 3*tileDim.x, cudaMemcpyDeviceToHost, id.stream);
 
+
+	if ( cudaSuccess != cudaStreamAddCallback(id.stream, sendSignalToMaster, (void*)this, 0))
+#if 0
 	if (cudaSuccess != cudaStreamSynchronize(id.stream))
 	{
 		std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
 		throw;
 	}
+#endif
 
 	std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" iterations per frame "<<iterations<<std::endl;
+}
+
+
+void threadWorker::waitFinishFrame()
+{
+	endFrame.wait();
+}
+
+void threadWorker::signalFinishFrame()
+{
+	numWorks--;
+	if (numWorks == 0)
+		endFrame.signal();
 }
 
 void threadWorker::run()
@@ -390,8 +412,20 @@ void threadWorker::run()
 				end = true;
 				break;
 			}
+			case NEW_FRAME:
+			{
+				numWorks = 0;
+				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<" New frame recieved"<<std::endl;
+				break;
+			} 
+			case END_FRAME:
+			{
+				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<" End frame recieved"<<std::endl;
+				break;
+			}
 			case NEW_TILE:
 			{
+				numWorks++;
 				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<" New Tile"<<std::endl;
 				createFrame(work.tile, work.pixel_buffer);
 				break;

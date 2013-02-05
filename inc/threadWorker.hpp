@@ -14,6 +14,7 @@
 #include "rayCaster.hpp"
 #include "channel.hpp"
 #include <lunchbox/thread.h>
+#include <lunchbox/condition.h>
 
 #define MAX_WORKS 100
 
@@ -21,6 +22,9 @@ class threadWorker : public lunchbox::Thread
 {
 	private:
 		threadID_t	id;
+		int		numWorks;
+
+		lunchbox::Condition	endFrame;
 
 		Camera  *	camera;
 		Channel	*	pipe;
@@ -54,6 +58,10 @@ class threadWorker : public lunchbox::Thread
 		~threadWorker();
 
 		Channel * getChannel();
+
+		void waitFinishFrame();
+
+		void signalFinishFrame();
 
 		virtual void run();
 };

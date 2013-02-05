@@ -33,7 +33,9 @@ typedef struct
 #define	DECREASE_STEP		3
 // Image
 #define CHANGE_ANTIALIASSING	4
-#define NEW_TILE		5
+#define	NEW_FRAME		5
+#define END_FRAME		6
+#define NEW_TILE		7
 #define END			999
 
 typedef struct
