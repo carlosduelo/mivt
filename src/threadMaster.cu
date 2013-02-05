@@ -5,35 +5,56 @@
 
 threadMaster::threadMaster(char ** argv, initParams_masterWorker_t * initParams)
 {
-	numWorkers 	= initParams->numWorkers;
-
-	if (numWorkers > MAX_WORKERS || numWorkers < 1)
+	numWorkers = 0;
+	for(int i=0; i<initParams->numDevices; i++)
 	{
-		std::cerr<<"Error: it has to be 1 to 32 workers"<<std::endl;
-		throw;
-	}
+		if (initParams->numWorkers[i] > MAX_WORKERS || initParams->numWorkers[i] < 1)
+		{
+			std::cerr<<"Error: it has to be 1 to 32 workers"<<std::endl;
+			throw;
+		}
 
+		numWorkers += initParams->numWorkers[i];
+	}
 
 	// Camera options
 	camera = new Camera(&(initParams->displayOptions));
 
-	// Create octree container
-	octree	= new OctreeContainer(argv[0], initParams->maxLevelOctree);
-
-	cache	= new Cache(&argv[1], initParams->maxElementsCache, initParams->cubeDim, initParams->cubeInc, initParams->levelCube, octree->getnLevels());
-
-	workers 	= new worker_t[numWorkers];
-	int idW 	= 1;
-	for(int i=0; i<numWorkers; i++)
+	// Create octree and cache on the differents devices
+	for(int i=0; i<initParams->numDevices; i++)
 	{
-		workers[i].worker 	= new threadWorker(&argv[5], idW, initParams->deviceID, camera, cache, octree, &(initParams->rayCasterOptions));
-		workers[i].pipe 	= workers[i].worker->getChannel();
-		idW <<= 1;
-		//
-		workers[i].worker->start();
+		std::cerr<<"Select device "<<initParams->deviceID[i]<<": ";
+		if (cudaSuccess != cudaSetDevice(initParams->deviceID[i]))
+		{
+			std::cerr<<"Fail"<<std::endl;
+			throw;
+		}
+		else
+			std::cerr<<"OK"<<std::endl;
+
+		// Create octree container
+		octree[i]	= new OctreeContainer(argv[0], initParams->maxLevelOctree);
+
+		cache[i]	= new Cache(&argv[1], initParams->maxElementsCache[0], initParams->cubeDim, initParams->cubeInc, initParams->levelCube, octree[i]->getnLevels());
 	}
 
+	workers 	= new worker_t[numWorkers];
+	int index	= 0;
 
+	for(int i=0; i<initParams->numDevices; i++)
+	{
+		int idW 	= 1;
+		for(int j=0; j<initParams->numWorkers[i]; j++)
+		{
+			workers[index].worker 	= new threadWorker(&argv[5], idW, initParams->deviceID[i], camera, cache[i], octree[i], &(initParams->rayCasterOptions));
+			workers[index].pipe 	= workers[i].worker->getChannel();
+			idW <<= 1;
+			//
+			workers[index].worker->start();
+			
+			index++;
+		}
+	}
 }
 
 threadMaster::~threadMaster()

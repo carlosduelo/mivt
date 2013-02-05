@@ -33,6 +33,9 @@ class threadWorker : public lunchbox::Thread
 
 		float	*	rays;
 		int		numRays;
+		int		maxRays;
+
+		float	*	pixel_buffer;
 
 		void createStructures();
 

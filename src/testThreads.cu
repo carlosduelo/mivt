@@ -13,14 +13,21 @@ int main(int argc, char ** argv)
 	initParams_masterWorker_t params;
 
 	// Workers
-	params.numWorkers	= 2;
-	params.deviceID		= 0;
+	params.numDevices	= 1;
+	params.numWorkers[0]	= 2;
+	params.numWorkers[1]	= 2;
+	params.numWorkers[2]	= 2;
+	params.deviceID[0]	= 0;
+	params.deviceID[1]	= 1;
+	params.deviceID[2]	= 2;
 
 	// Cache
-	params.maxElementsCache	= 100;
-	params.cubeInc		= 2;
-	params.cubeDim		= make_int3(32,32,32);
-	params.levelCube	= 4;
+	params.maxElementsCache[0]	= 100;
+	params.maxElementsCache[1]	= 100;
+	params.maxElementsCache[2]	= 100;
+	params.cubeInc			= 2;
+	params.cubeDim			= make_int3(32,32,32);
+	params.levelCube		= 4;
 
 	// Octree
 	params.maxLevelOctree	= 9;

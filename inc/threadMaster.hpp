@@ -14,8 +14,9 @@
 typedef struct
 {
 	// worker options
-	int			numWorkers;
-	int			deviceID;
+	int			numDevices;
+	int			numWorkers[MAX_WORKERS];
+	int			deviceID[MAX_WORKERS];
 
 	// rayCaster Options
 	rayCaster_options_t  	rayCasterOptions;
@@ -24,7 +25,7 @@ typedef struct
 	camera_settings_t 	displayOptions;
 
 	// Cache Options
-	int			maxElementsCache;
+	int			maxElementsCache[MAX_WORKERS];
 	int3			cubeDim;
 	int			cubeInc;
 	int			levelCube;
@@ -47,8 +48,8 @@ class threadMaster
 		int			numWorkers;
 
 		Camera	*		camera;
-		Cache	*		cache;
-		OctreeContainer *	octree;
+		Cache	*		cache[MAX_WORKERS];
+		OctreeContainer *	octree[MAX_WORKERS];
 	public:
 		threadMaster(char ** argv, initParams_masterWorker_t * initParams);
 

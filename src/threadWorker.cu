@@ -9,7 +9,17 @@ threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p
 	// Setting id thread
 	id.id 		= id_thread;
 	id.deviceID 	= deviceID;
-	std::cerr<<"Createing cudaStream: ";
+	
+	std::cerr<<"Thread: " << id.id<<" started device "<<id.deviceID<<": ";
+	if (cudaSuccess != cudaSetDevice(id.deviceID))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw;
+	}
+	else
+		std::cerr<<"OK"<<std::endl;
+
+	std::cerr<<"Thread "<<id.id<<" on device "<<"Createing cudaStream: ";
 	if (cudaSuccess != cudaStreamCreate(&id.stream))
 	{
 		std::cerr<<"Fail"<<std::endl;
@@ -21,18 +31,18 @@ threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p
 	cache 		= p_cache;
 	pipe		= new Channel(MAX_WORKS);
 	raycaster	= new rayCaster(p_octreeC->getIsosurface(), rCasterOptions);
+	int2 tileDim	= camera->getTileDim();
+	numRays		= tileDim.x * tileDim.y * camera->getNumRayPixel();
+	maxRays		= tileDim.x * tileDim.y * camera->getMaxRayPixel();
 
 	createStructures();
 
 	if (strcmp(argv[0], "complete_GPU") == 0)
 	{
-		int2 tileDim	= camera->getTileDim();
-		int maxR 	= tileDim.x * tileDim.y * camera->getMaxRayPixel(); 
-		octree 		= new Octree_completeGPU(p_octreeC, maxR);
+		octree 		= new Octree_completeGPU(p_octreeC, maxRays);
 	}
 	else
 	{
-	std::cerr<<argv[0]<<std::endl;
 		std::cerr<<"Error: octree option error"<<std::endl;
 		throw;
 	}
@@ -41,6 +51,8 @@ threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p
 
 threadWorker::~threadWorker()
 {
+	cudaSetDevice(id.deviceID);
+
 	delete pipe;
 	delete octree;
 	delete raycaster;
@@ -52,23 +64,21 @@ void threadWorker::destroyStructures()
 	cudaFree(visibleCubesGPU);
 	cudaFreeHost(visibleCubesCPU);
 	cudaFree(rays);
+	cudaFree(pixel_buffer);
 }
 
 void threadWorker::createStructures()
 {
-	int2 tileDim	= camera->getTileDim();
-	numRays		= tileDim.x * tileDim.y * camera->getNumRayPixel();
-
-	std::cerr<<"Allocating memory visibleCubesCPU "<<numRays*sizeof(visibleCube_t)/1024/1024 <<" MB : ";
-	if (cudaSuccess != cudaHostAlloc((void**)&visibleCubesCPU, numRays*sizeof(visibleCube_t), cudaHostAllocDefault))
+	std::cerr<<"Thread "<<id.id<<" on device "<<"Allocating memory visibleCubesCPU "<<maxRays*sizeof(visibleCube_t)/1024/1024 <<" MB : ";
+	if (cudaSuccess != cudaHostAlloc((void**)&visibleCubesCPU, maxRays*sizeof(visibleCube_t), cudaHostAllocDefault))
 	{
 		std::cerr<<"Fail"<<std::endl;
 		throw;
 	}
 	else
 		std::cerr<<"OK"<<std::endl;
-        std::cerr<<"Allocating memory visibleCubesGPU "<<numRays*sizeof(visibleCube_t)/1024/1024 <<" MB : ";
-	if (cudaSuccess != cudaMalloc((void**)&visibleCubesGPU, numRays*sizeof(visibleCube_t)))
+        std::cerr<<"Thread "<<id.id<<" on device "<<"Allocating memory visibleCubesGPU "<<maxRays*sizeof(visibleCube_t)/1024/1024 <<" MB : ";
+	if (cudaSuccess != cudaMalloc((void**)&visibleCubesGPU, maxRays*sizeof(visibleCube_t)))
 	{
 		std::cerr<<"Fail"<<std::endl;
 		throw;
@@ -79,8 +89,18 @@ void threadWorker::createStructures()
 	resetVisibleCubes();
 
 	// Create rays
-        std::cerr<<"Allocating memory rays "<<numRays*3*sizeof(float)/1024/1024 <<" MB : ";
-	if (cudaSuccess != cudaMalloc((void**)&rays, 3*numRays*sizeof(float)))
+        std::cerr<<"Thread "<<id.id<<" on device "<<"Allocating memory rays "<<maxRays*3*sizeof(float)/1024/1024 <<" MB : ";
+	if (cudaSuccess != cudaMalloc((void**)&rays, 3*maxRays*sizeof(float)))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw;
+	}
+	else
+		std::cerr<<"OK"<<std::endl;
+
+	// Create pixle_buffer
+        std::cerr<<"Thread "<<id.id<<" on device "<<"Allocating memory pixel_buffer "<<maxRays*3*sizeof(float)/1024/1024 <<" MB : ";
+	if (cudaSuccess != cudaMalloc((void**)&pixel_buffer, 3*maxRays*sizeof(float)))
 	{
 		std::cerr<<"Fail"<<std::endl;
 		throw;
@@ -96,12 +116,19 @@ Channel * threadWorker::getChannel()
 
 void threadWorker::resetVisibleCubes()
 {
-	cudaMemsetAsync((void*)visibleCubesGPU, 0, numRays*sizeof(visibleCube_t), id.stream);
+	cudaMemsetAsync((void*)visibleCubesGPU, 0, maxRays*sizeof(visibleCube_t), id.stream);
 }
 
 void threadWorker::run()
 {
-	std::cout<<"Thread: " << id.id<<" started"<<std::endl;
+	std::cerr<<"Thread: " << id.id<<" started device "<<id.deviceID<<": ";
+	if (cudaSuccess != cudaSetDevice(id.deviceID))
+	{
+		std::cerr<<"Fail"<<std::endl;
+		throw;
+	}
+	else
+		std::cerr<<"OK"<<std::endl;
 
 	bool end = false;
 
@@ -112,33 +139,54 @@ void threadWorker::run()
 		switch(work.work_id)
 		{
 			case UP_LEVEL_OCTREE:
+			{
+				std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" increase octree level"<<std::endl;
 				octree->increaseLevel();
 				break;
+			}
 			case DOWN_LEVEL_OCTREE:
+			{
+				std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" decrease octree level"<<std::endl;
 				octree->decreaseLevel();
 				break;
+			}
 			case INCREASE_STEP:
+			{
+				std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" increase step"<<std::endl;
 				raycaster->increaseStep();
 				break;
+			}
 			case DECREASE_STEP:
+			{
+				std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" decrease step"<<std::endl;
 				raycaster->decreaseStep();
 				break;
+			}
 			case CHANGE_ANTIALIASSING:
-				destroyStructures();
-				createStructures();
+			{
+				int2 tileDim	= camera->getTileDim();
+				numRays		= tileDim.x * tileDim.y * camera->getNumRayPixel();
+				std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" change supersampling"<<std::endl;
 				break;
+			}
 			case END:
-				std::cout<<"End thread work"<<std::endl;
+			{
+				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<"End thread work"<<std::endl;
 				end = true;
 				break;
+			}
 			case NEW_TILE:
-				std::cout<<"New Tile"<<std::endl;
+			{
+				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<"New Tile"<<std::endl;
 				break;
+			}
 			default:
-				std::cerr<<"Error: thread recieve a not valid command"<<std::endl;
+			{
+				std::cerr<<"Error: thread "<<id.id<<" on device "<<id.deviceID<<" recieve a not valid command"<<std::endl;
 				throw;
+			}
 		}
 
-		std::cout<<"Thread: " << id.id<<" new task done"<<std::endl;
+		std::cout<<"Thread: " << id.id<<" on device "<<id.deviceID<<" new task done"<<std::endl;
 	}
 }
