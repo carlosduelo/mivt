@@ -116,10 +116,13 @@ NodeLinkedList * LinkedList::moveToLastPosition(NodeLinkedList * node)
 
 void	LinkedList::removeReference(NodeLinkedList * node, int ref)
 {
-	node->references &= ~(ref);
+	if (node->references > 0)
+	{
+		node->references &= ~(ref);
 
-	if (node->references == 0)
-		freePositions++;
+		if (node->references == 0)
+			freePositions++;
+	}
 }
 
 void 	LinkedList::addReference(NodeLinkedList * node, int ref)

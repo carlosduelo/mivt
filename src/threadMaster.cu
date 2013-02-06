@@ -252,7 +252,7 @@ void threadMaster::createFrame(float * pixel_buffer)
 	work_packet_t work;
 	work.work_id = NEW_FRAME;
 	for(int index=0; index<numWorkers; index++)
-		workers[index].pipe->push(work);
+		while(!workers[index].pipe->push(work));
 
 	int index = 0;
 	for(int ii=0; ii<i; ii++)
@@ -262,7 +262,7 @@ void threadMaster::createFrame(float * pixel_buffer)
 			work.tile 		= make_int2(ii,jj);
 			work.pixel_buffer 	= pixel_buffer + (tileDim.x*tileDim.y) * (work.tile.x * tileDim.y + work.tile.y);
 
-			workers[index].pipe->push(work);
+			while(!workers[index].pipe->push(work));
 			index++;
 			if (index == numWorkers)
 				index = 0;  
@@ -270,7 +270,7 @@ void threadMaster::createFrame(float * pixel_buffer)
 
 	work.work_id = END_FRAME;
 	for(int index=0; index<numWorkers; index++)
-		workers[index].pipe->push(work);
+		while(!workers[index].pipe->push(work));
 
 	for(int index=0; index<numWorkers; index++)
 		workers[index].worker->waitFinishFrame();

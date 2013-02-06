@@ -1,4 +1,5 @@
 #include "fileUtil.hpp"
+#include "mortonCodeUtil.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -10,14 +11,18 @@ int main(int argc, char ** argv)
 		return 0;
 	}
 
-	FileManager *  fileManager = OpenFile(&argv[1], 4, 9, make_int3(32,32,32), make_int3(2,2,2));
+	FileManager *  fileManager = OpenFile(&argv[1], 8, 9, make_int3(32,32,32), make_int3(2,2,2));
 
 	float * data = new float[36*36*36];
 
-	fileManager->readCube(5500, data);
+	index_node_t inicio 	= coordinateToIndex(make_int3(0,0,0), 8, 9);
+	index_node_t fin	= coordinateToIndex(make_int3(255,255,255),8,9); 
 
-	for(int i=0;i<(36*36*36); i++)
-		std::cout<<data[i]<<std::endl;
+	while(inicio != fin)
+	{
+		fileManager->readCube(inicio, data);
+		inicio++;
+	}
 
 	delete fileManager;
 	delete[] data;

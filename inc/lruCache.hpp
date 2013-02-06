@@ -92,6 +92,7 @@ class cache_GPU_File : public lruCache
 {
 	private:
 		// Acces to file
+		float		*	tempCube;
 		FileManager	*	fileManager;
 	public:
 		cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);

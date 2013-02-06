@@ -25,6 +25,7 @@ class threadWorker : public lunchbox::Thread
 		int		numWorks;
 
 		lunchbox::Condition	endFrame;
+		bool			recivedEndFrame;
 
 		Camera  *	camera;
 		Channel	*	pipe;
@@ -61,7 +62,7 @@ class threadWorker : public lunchbox::Thread
 
 		void waitFinishFrame();
 
-		void signalFinishFrame();
+		void signalFinishFrame(int secret_word);
 
 		virtual void run();
 };

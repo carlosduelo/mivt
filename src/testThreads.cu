@@ -15,8 +15,8 @@ int main(int argc, char ** argv)
 	initParams_masterWorker_t params;
 
 	// Workers
-	params.numDevices	= 2;
-	params.numWorkers[0]	= 2;
+	params.numDevices	= 1;
+	params.numWorkers[0]	= 1;
 	params.numWorkers[1]	= 2;
 	params.numWorkers[2]	= 2;
 	params.deviceID[0]	= 0;
@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
 
 	mivt->createFrame(buffer);
 
-#if 0
+#if 1
 	for(int i=0; i<params.displayOptions.height; i++)
 		for(int j=0; j<params.displayOptions.width; j++)
                 {

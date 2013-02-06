@@ -21,6 +21,9 @@ ELSE(FREEIMAGE_FOUND)
 ENDIF(FREEIMAGE_FOUND)
 
 
+#Set flags
+list(APPEND CUDA_NVCC_FLAGS -arch=sm_20)
+
 set(SRC ${mivt_SOURCE_DIR}/../src/)
 set(INC  ${mivt_SOURCE_DIR}/../inc/)
 
@@ -28,13 +31,19 @@ set(INC  ${mivt_SOURCE_DIR}/../inc/)
 cuda_include_directories(${INC})
 
 # Tarject testFileManager
-cuda_compile(testFileManager ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu)
-cuda_add_executable(tesFileManager ${SRC}/testFileManager.cu ${testFileManager})
-target_link_libraries(tesFileManager hdf5)
+cuda_compile(testFileManagerOBJ ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu)
+cuda_add_executable(testFileManager ${SRC}/testFileManager.cu ${testFileManagerOBJ})
+target_link_libraries(testFileManager hdf5)
 
 # Tarject testThreadMaster 
-cuda_compile(testThreadMaster ${SRC}/cache_GPU_File.cu  ${SRC}/Camera.cu  ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu  ${SRC}/lruCache.cu  ${SRC}/octree_completeGPU.cu  ${SRC}/octreeContainer.cu  ${SRC}/rayCaster.cu  ${SRC}/threadMaster.cu ${SRC}/threadWorker.cu)
-cuda_add_executable(testThreadMaster ${SRC}/testThreads.cu ${testThreadMaster})
+cuda_compile(testThreadMasterOBJ ${SRC}/cache_GPU_File.cu  ${SRC}/Camera.cu  ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu  ${SRC}/lruCache.cu  ${SRC}/octree_completeGPU.cu  ${SRC}/octreeContainer.cu  ${SRC}/rayCaster.cu  ${SRC}/threadMaster.cu ${SRC}/threadWorker.cu)
+cuda_add_executable(testThreadMaster ${SRC}/testThreads.cu ${testThreadMasterOBJ})
 target_link_libraries(testThreadMaster hdf5)
 target_link_libraries(testThreadMaster Lunchbox)
 target_link_libraries(testThreadMaster freeimage)
+
+# Tarject testCache
+cuda_compile(testCacheOBJ ${SRC}/cache_GPU_File.cu  ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu  ${SRC}/lruCache.cu)
+cuda_add_executable(testCache ${SRC}/testCache.cu ${testCacheOBJ})
+target_link_libraries(testCache hdf5)
+target_link_libraries(testCache Lunchbox)

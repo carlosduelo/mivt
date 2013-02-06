@@ -4,7 +4,7 @@ CUDACP=sm_20
 CFLAGS=$(OPT) -g -Wall
 NFLAGS=-G $(OPT) -arch=$(CUDACP) -Xcompiler '$(CFLAGS)'
 INCLUDE=-Iinc/
-LIBRARY=-Llib/ -lLunchbox -lhdf5 -lm
+LIBRARY=-Llib/ -lLunchbox -lhdf5 -lm -lfreeimage
 
 all: Objects testPrograms 
 

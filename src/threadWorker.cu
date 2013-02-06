@@ -5,6 +5,8 @@
 #include <fstream>
 #include <strings.h>
 
+#define SECRET_WORD 345678987
+
 
 /*
  **************************************************************************************************************************************************************************
@@ -38,8 +40,10 @@ __global__ void cuda_createRays_1(int2 tile, int2 tileDim, float * rays, int num
 
         if (id < numRays)
         {
-		int i  = (tile.x * tileDim.x) + (id / tile.x);
-                int j  = (tile.y * tileDim.y) + (id % tile.x);
+		int i  = (tile.x * tileDim.x) + (id / tileDim.x);
+                int j  = (tile.y * tileDim.y) + (id % tileDim.x);
+	
+		//printf("%d %d %d %d %d %d %d\n",id,tile.x, tile.y,tileDim.x,tileDim.y,i,j);
 
                 float ih  = h/H;
                 float iw  = w/W;
@@ -105,7 +109,7 @@ void sendSignalToMaster(cudaStream_t stream, cudaError_t status, void *data)
 {
 	threadWorker * worker = (threadWorker*) data;
 	
-	worker->signalFinishFrame();	
+	worker->signalFinishFrame(SECRET_WORD);	
 }
 
 /*
@@ -234,6 +238,9 @@ void threadWorker::createRays(int2 tile, int numPixels)
 {
 	dim3 threads = getThreads(numPixels);
         dim3 blocks = getBlocks(numPixels);
+
+std::cout<<tile.x<<" "<<tile.y<<std::endl;
+std::cout<<camera->getTileDim().x<<" "<<camera->getTileDim().y<<std::endl;
 	
 	switch(camera->getNumRayPixel())
 	{
@@ -300,6 +307,13 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
 			throw;
 		}
+
+		int cubes = 0;
+                for(int i=0; i<numRays; i++)
+                        if (visibleCubesCPU[i].state == CUBE)
+                        	cubes++;
+		std::cout<<"---_>"<<cubes<<std::endl;
+	
 		cache->push(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
                 int numP = 0;
                 for(int i=0; i<numRays; i++)
@@ -313,12 +327,22 @@ void threadWorker::createFrame(int2 tile, float * buffer)
                 }
 
                 cudaMemcpyAsync((void*) visibleCubesGPU, (const void*) visibleCubesCPU, numRays*sizeof(visibleCube_t), cudaMemcpyHostToDevice, id.stream);
+/*
 		if (cudaSuccess != cudaStreamSynchronize(id.stream))
 		{
 			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
 			throw;
 		}
+*/
                 raycaster->render(rays, numRays, camera->get_position(), octree->getOctreeLevel(), cache->getCacheLevel(), octree->getnLevels(), visibleCubesGPU, cache->getCubeDim(), cache->getCubeInc(), pixel_buffer, id.stream);
+/*
+                cudaMemcpyAsync((void*) visibleCubesCPU, (const void*) visibleCubesGPU, numRays*sizeof(visibleCube_t), cudaMemcpyDeviceToHost, id.stream);
+*/
+		if (cudaSuccess != cudaStreamSynchronize(id.stream))
+		{
+			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
+			throw;
+		}
 		cache->pop(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
 
                 iterations++;
@@ -332,6 +356,10 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 
 
 	if ( cudaSuccess != cudaStreamAddCallback(id.stream, sendSignalToMaster, (void*)this, 0))
+	{
+		std::cerr<<"Error making cudaCallback"<<std::endl;
+		throw;
+	}
 #if 0
 	if (cudaSuccess != cudaStreamSynchronize(id.stream))
 	{
@@ -349,11 +377,16 @@ void threadWorker::waitFinishFrame()
 	endFrame.wait();
 }
 
-void threadWorker::signalFinishFrame()
+void threadWorker::signalFinishFrame(int secret_word)
 {
-	numWorks--;
-	if (numWorks == 0)
-		endFrame.signal();
+	if (secret_word == SECRET_WORD)
+	{
+		numWorks--;
+		if (numWorks == 0 && recivedEndFrame)
+			endFrame.signal();
+	}
+	else
+		std::cerr<<"Warning! you cannot call this funcion if you are not the same thread!!"<<std::endl;
 }
 
 void threadWorker::run()
@@ -415,11 +448,13 @@ void threadWorker::run()
 			case NEW_FRAME:
 			{
 				numWorks = 0;
+				recivedEndFrame = false;
 				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<" New frame recieved"<<std::endl;
 				break;
 			} 
 			case END_FRAME:
 			{
+				recivedEndFrame = true;
 				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<" End frame recieved"<<std::endl;
 				break;
 			}

@@ -9,6 +9,9 @@ cache_GPU_File::cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, 
 	// OpenFile
 	fileManager = OpenFile(argv, p_levelCube, p_nLevels, p_cubeDim, make_int3(p_cubeInc,p_cubeInc,p_cubeInc));
 
+	// Create temporate cube
+	tempCube = new float[offsetCube];
+
 	// Allocating memory
 	std::cerr<<"Creating cache in GPU: "<< maxElements*offsetCube*sizeof(float)/1024/1024<<" MB"<<std::endl; 
 	if (cudaSuccess != cudaMalloc((void**)&cacheData, maxElements*offsetCube*sizeof(float)))
@@ -28,6 +31,7 @@ cache_GPU_File::cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, 
 
 cache_GPU_File::~cache_GPU_File()
 {
+	delete tempCube;
 	delete queuePositions;
 	cudaFree(cacheData);
 }
@@ -70,11 +74,16 @@ void cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t
 				indexStored.erase(indexStored.find(removedCube));
 
 			unsigned pos   = node->element;
-			fileManager->readCube(idCube, cacheData+ pos*offsetCube);
+			fileManager->readCube(idCube, tempCube);//cacheData+ pos*offsetCube);
 
 			cube->data 	= cacheData + pos*offsetCube;
 			cube->state 	= CACHED;
 			cube->cubeID 	= idCube;
+
+			if (cudaSuccess != cudaMemcpy((void*) cube->data, (void*) tempCube, offsetCube*sizeof(float), cudaMemcpyHostToDevice))
+			{
+				std::cerr<<"Cache GPU_File: error copying to a device"<<std::endl;
+			}
 
 			queuePositions->moveToLastPosition(node);
 			queuePositions->addReference(node,thread->id);
