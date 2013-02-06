@@ -262,10 +262,13 @@ void threadMaster::createFrame(float * pixel_buffer)
 			work.tile 		= make_int2(ii,jj);
 			work.pixel_buffer 	= pixel_buffer + (tileDim.x*tileDim.y) * (work.tile.x * tileDim.y + work.tile.y);
 
-			while(!workers[index].pipe->push(work));
-			index++;
-			if (index == numWorkers)
-				index = 0;  
+			while(!workers[index].pipe->push(work))
+			{
+				index++;
+				if (index == numWorkers)
+					index = 0;
+			}
+			std::cout<<"Send Tile "<<ii<<" "<<jj<<std::endl;
 		}
 
 	work.work_id = END_FRAME;

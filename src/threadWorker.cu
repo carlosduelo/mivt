@@ -239,9 +239,6 @@ void threadWorker::createRays(int2 tile, int numPixels)
 	dim3 threads = getThreads(numPixels);
         dim3 blocks = getBlocks(numPixels);
 
-std::cout<<tile.x<<" "<<tile.y<<std::endl;
-std::cout<<camera->getTileDim().x<<" "<<camera->getTileDim().y<<std::endl;
-	
 	switch(camera->getNumRayPixel())
 	{
 		case 1:
@@ -312,7 +309,6 @@ void threadWorker::createFrame(int2 tile, float * buffer)
                 for(int i=0; i<numRays; i++)
                         if (visibleCubesCPU[i].state == CUBE)
                         	cubes++;
-		std::cout<<"---_>"<<cubes<<std::endl;
 	
 		cache->push(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
                 int numP = 0;
@@ -353,6 +349,8 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 
 	// DANGER, I am not sure, this works
 	cudaMemcpy2DAsync((void*)buffer, 3*camera->getWidth()*sizeof(float), (void*) pixel_buffer, 3*tileDim.y*sizeof(float), 3*tileDim.y*sizeof(float), 3*tileDim.x, cudaMemcpyDeviceToHost, id.stream);
+//for(int i=0; i<32*3; i++)
+//	std::cout<<buffer[i]<<std::endl;
 
 
 	if ( cudaSuccess != cudaStreamAddCallback(id.stream, sendSignalToMaster, (void*)this, 0))
@@ -368,13 +366,14 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 	}
 #endif
 
-	std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" iterations per frame "<<iterations<<std::endl;
+	std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" iterations per frame "<<iterations<<" for tile "<<tile.x<<" "<<tile.y<<std::endl;
 }
 
 
 void threadWorker::waitFinishFrame()
 {
-	endFrame.wait();
+	endFrame.set();
+	endFrame.unset();
 }
 
 void threadWorker::signalFinishFrame(int secret_word)
@@ -382,8 +381,6 @@ void threadWorker::signalFinishFrame(int secret_word)
 	if (secret_word == SECRET_WORD)
 	{
 		numWorks--;
-		if (numWorks == 0 && recivedEndFrame)
-			endFrame.signal();
 	}
 	else
 		std::cerr<<"Warning! you cannot call this funcion if you are not the same thread!!"<<std::endl;
@@ -449,12 +446,19 @@ void threadWorker::run()
 			{
 				numWorks = 0;
 				recivedEndFrame = false;
+				endFrame.set();
 				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<" New frame recieved"<<std::endl;
 				break;
 			} 
 			case END_FRAME:
 			{
 				recivedEndFrame = true;
+				if (cudaSuccess != cudaStreamSynchronize(id.stream))
+				{
+					std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error waiting to unlock master"<<std::endl;
+					throw;
+				}
+				endFrame.unset();
 				std::cout<<"Thread "<<id.id<<" on device "<<id.deviceID<<" End frame recieved"<<std::endl;
 				break;
 			}
