@@ -109,14 +109,6 @@ class Cache
 {
 	private:
 		lruCache * cache; 
-		
-	#if _BUNORDER_MAP_
-                boost::unordered_map<index_node_t, visibleCube_t *> * insertedCubes;
-        #else
-                std::map<index_node_t, visibleCube_t *> * insertedCubes;
-        #endif
-
-		lunchbox::Lock	* locks;
 
 	public:
 		Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
