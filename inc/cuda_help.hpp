@@ -17,7 +17,7 @@ inline dim3 getBlocks(int dim)
 	}
 	else// if (dim<=(BLOCK_SIZE*BLOCK_SIZE))
 	{
-		int numBlocks = dim / 128;
+		int numBlocks = dim / BLOCK_SIZE;
 		if (dim % BLOCK_SIZE !=0) numBlocks++;
 		int bpA = sqrt(numBlocks);
 		int bp  = floorf(bpA) + 1;

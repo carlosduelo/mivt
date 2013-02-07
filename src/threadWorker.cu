@@ -25,14 +25,15 @@ __global__ void cuda_refactorPixelBuffer(float * pixel_buffer, int numRays, int 
 
 		for(int j=1; j<numRaysPixel; j++)
 		{
-			pixel_buffer[index]	+= 0; 
-			pixel_buffer[index+1]	+= 0;
-			pixel_buffer[index+2]	+= 0;
+			pixel_buffer[index]	+= pixel_buffer[pos]; 
+			pixel_buffer[index+1]	+= pixel_buffer[pos+1];
+			pixel_buffer[index+2]	+= pixel_buffer[pos+2];
 		}
+		pixel_buffer[index] 	/= numRaysPixel;
+		pixel_buffer[index+1]	/= numRaysPixel;
+		pixel_buffer[index+2]	/= numRaysPixel;
 	}
-	
 }
-
 
 __global__ void cuda_createRays_1(int2 tile, int2 tileDim, float * rays, int numRays, float3 up, float3 right, float3 look, int H, int W, float h, float w, float distance)
 {
@@ -40,8 +41,8 @@ __global__ void cuda_createRays_1(int2 tile, int2 tileDim, float * rays, int num
 
         if (id < numRays)
         {
-		int i  = (tile.x * tileDim.x) + (id / tileDim.x);
-                int j  = (tile.y * tileDim.y) + (id % tileDim.x);
+		int i  = (tile.x * tileDim.x) + (id / tileDim.y);
+                int j  = (tile.y * tileDim.y) + (id % tileDim.y);
 	
 		//printf("%d %d %d %d %d %d %d\n",id,tile.x, tile.y,tileDim.x,tileDim.y,i,j);
 
@@ -110,6 +111,24 @@ void sendSignalToMaster(cudaStream_t stream, cudaError_t status, void *data)
 	threadWorker * worker = (threadWorker*) data;
 	
 	worker->signalFinishFrame(SECRET_WORD);	
+}
+
+// FILL PIXEL_BUFFER TESTING PROPOUSES
+__global__ void cuda_fill_pixel_buffer(float * pixel_buffer, int numRays, int numRaysPixel, int2 tile, int2 tileDim, int width, int height)
+{
+	int i 	= blockIdx.y * blockDim.x * gridDim.y + blockIdx.x * blockDim.x +threadIdx.x;
+	
+	if (i < numRays)
+	{
+		int pos = i*3;
+		int ray = i % numRaysPixel;
+		int x = i / tileDim.x;
+		int y = i % tileDim.x;
+
+		pixel_buffer[pos]	= (float)(x + tile.x * tileDim.x) / (float)height;
+		pixel_buffer[pos+1]	= (float)(y + tile.y * tileDim.y) / (float)width;
+		pixel_buffer[pos+2]	= 0.0f;
+	}
 }
 
 /*
@@ -281,17 +300,17 @@ void threadWorker::refactorPixelBuffer(int numPixels)
 
 void threadWorker::createFrame(int2 tile, float * buffer)
 {
+	int2 tileDim 	= camera->getTileDim();
+	int numPixels 	= tileDim.x * tileDim.y;
+	bool notEnd 	= true;
+        int iterations 	= 0;
+
+#if 1
 	// Reset visible cubes
 	resetVisibleCubes();
 	
 	// Create rays
-	int2 tileDim = camera->getTileDim();
-	int numPixels = tileDim.x * tileDim.y;
 	createRays(tile, numPixels);
-
-	// Create frame
-	bool notEnd = true;
-        int iterations = 0;
 
 	// Reset octree state
 	octree->resetState(id.stream);
@@ -323,48 +342,36 @@ void threadWorker::createFrame(int2 tile, float * buffer)
                 }
 
                 cudaMemcpyAsync((void*) visibleCubesGPU, (const void*) visibleCubesCPU, numRays*sizeof(visibleCube_t), cudaMemcpyHostToDevice, id.stream);
-/*
-		if (cudaSuccess != cudaStreamSynchronize(id.stream))
-		{
-			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
-			throw;
-		}
-*/
+
                 raycaster->render(rays, numRays, camera->get_position(), octree->getOctreeLevel(), cache->getCacheLevel(), octree->getnLevels(), visibleCubesGPU, cache->getCubeDim(), cache->getCubeInc(), pixel_buffer, id.stream);
-/*
-                cudaMemcpyAsync((void*) visibleCubesCPU, (const void*) visibleCubesGPU, numRays*sizeof(visibleCube_t), cudaMemcpyDeviceToHost, id.stream);
-*/
+
 		if (cudaSuccess != cudaStreamSynchronize(id.stream))
 		{
 			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
 			throw;
 		}
+
 		cache->pop(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
 
                 iterations++;
 	}
+#else
+	dim3 threads = getThreads(numRays);
+	dim3 blocks = getBlocks(numRays);
+	cuda_fill_pixel_buffer<<<blocks, threads, 0, id.stream>>>(pixel_buffer, numRays, camera->getNumRayPixel(), tile, camera->getTileDim(), camera->getWidth(), camera->getHeight());
+#endif
 
 	// Refactor pixel_buffer and copy
 	refactorPixelBuffer(numPixels);
 
 	// DANGER, I am not sure, this works
-	cudaMemcpy2DAsync((void*)buffer, 3*camera->getWidth()*sizeof(float), (void*) pixel_buffer, 3*tileDim.y*sizeof(float), 3*tileDim.y*sizeof(float), 3*tileDim.x, cudaMemcpyDeviceToHost, id.stream);
-//for(int i=0; i<32*3; i++)
-//	std::cout<<buffer[i]<<std::endl;
-
+	cudaMemcpy2DAsync((void*)buffer, 3*camera->getWidth()*sizeof(float), (void*) pixel_buffer, 3*tileDim.y*sizeof(float), 3*tileDim.y*sizeof(float), tileDim.x, cudaMemcpyDeviceToHost, id.stream);
 
 	if ( cudaSuccess != cudaStreamAddCallback(id.stream, sendSignalToMaster, (void*)this, 0))
 	{
 		std::cerr<<"Error making cudaCallback"<<std::endl;
 		throw;
 	}
-#if 0
-	if (cudaSuccess != cudaStreamSynchronize(id.stream))
-	{
-		std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
-		throw;
-	}
-#endif
 
 	std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" iterations per frame "<<iterations<<" for tile "<<tile.x<<" "<<tile.y<<std::endl;
 }

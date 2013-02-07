@@ -242,8 +242,8 @@ void threadMaster::decreaseStep()
 // Frame creation
 void threadMaster::createFrame(float * pixel_buffer)
 {
-	int  W		= camera->getHeight();
-	int  H		= camera->getWidth();
+	int  H		= camera->getHeight();
+	int  W		= camera->getWidth();
 	int2 tileDim 	= camera->getTileDim();
 
 	int  i = H/tileDim.x;
@@ -252,15 +252,16 @@ void threadMaster::createFrame(float * pixel_buffer)
 	work_packet_t work;
 	work.work_id = NEW_FRAME;
 	for(int index=0; index<numWorkers; index++)
-		while(!workers[index].pipe->push(work));
+		workers[index].pipe->pushBlock(work);
 
 	int index = 0;
 	for(int ii=0; ii<i; ii++)
+	{
 		for(int jj=0; jj<j; jj++)
 		{
 			work.work_id 		= NEW_TILE;
 			work.tile 		= make_int2(ii,jj);
-			work.pixel_buffer 	= pixel_buffer + (tileDim.x*tileDim.y) * (work.tile.x * tileDim.y + work.tile.y);
+			work.pixel_buffer 	= pixel_buffer + jj*3*tileDim.y + ii*3*W*tileDim.x;
 
 			while(!workers[index].pipe->push(work))
 			{
@@ -270,10 +271,11 @@ void threadMaster::createFrame(float * pixel_buffer)
 			}
 			std::cout<<"Send Tile "<<ii<<" "<<jj<<std::endl;
 		}
+	}
 
 	work.work_id = END_FRAME;
 	for(int index=0; index<numWorkers; index++)
-		while(!workers[index].pipe->push(work));
+		workers[index].pipe->pushBlock(work);
 
 	for(int index=0; index<numWorkers; index++)
 		workers[index].worker->waitFinishFrame();

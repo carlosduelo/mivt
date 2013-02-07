@@ -25,6 +25,11 @@ class Channel
 			delete queue;
 		}
 
+		void pushBlock(work_packet_t work)
+		{
+			return queue->push(work);
+		}
+
 		bool push(work_packet_t work)
 		{
 			if (queue->getSize() == queue->getMaxSize())

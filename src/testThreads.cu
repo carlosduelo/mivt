@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
 		std::cerr<<"Ok"<<std::endl;
 
 	FreeImage_Initialise();
-	FIBITMAP * bitmap = FreeImage_Allocate(params.displayOptions.height, params.displayOptions.width, 24);
+	FIBITMAP * bitmap = FreeImage_Allocate(params.displayOptions.width, params.displayOptions.height, 24);
 	RGBQUAD color;
 
 
@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
 			color.rgbRed 	= buffer[id*3]*255;
 			color.rgbGreen 	= buffer[id*3+1]*255;
 			color.rgbBlue 	= buffer[id*3+2]*255;
-			FreeImage_SetPixelColor(bitmap, i, j, &color);
+			FreeImage_SetPixelColor(bitmap, j, i, &color);
 		}
 
 	std::stringstream name;
