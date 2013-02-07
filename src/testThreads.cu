@@ -15,8 +15,8 @@ int main(int argc, char ** argv)
 	initParams_masterWorker_t params;
 
 	// Workers
-	params.numDevices	= 1;
-	params.numWorkers[0]	= 1;
+	params.numDevices	= 0;
+	params.numWorkers[0]	= 2;
 	params.numWorkers[1]	= 2;
 	params.numWorkers[2]	= 2;
 	params.deviceID[0]	= 0;
@@ -67,23 +67,25 @@ int main(int argc, char ** argv)
 	RGBQUAD color;
 
 
-	mivt->createFrame(buffer);
+	for(int frame=0; frame<10; frame++)
+	{
+		mivt->createFrame(buffer);
+		mivt->StrafeRight(0.5f);
 
-#if 1
-	for(int i=0; i<params.displayOptions.height; i++)
-		for(int j=0; j<params.displayOptions.width; j++)
-                {
-			int id = i*params.displayOptions.width + j;
-			color.rgbRed 	= buffer[id*3]*255;
-			color.rgbGreen 	= buffer[id*3+1]*255;
-			color.rgbBlue 	= buffer[id*3+2]*255;
-			FreeImage_SetPixelColor(bitmap, j, i, &color);
-		}
+		for(int i=0; i<params.displayOptions.height; i++)
+			for(int j=0; j<params.displayOptions.width; j++)
+			{
+				int id = i*params.displayOptions.width + j;
+				color.rgbRed 	= buffer[id*3]*255;
+				color.rgbGreen 	= buffer[id*3+1]*255;
+				color.rgbBlue 	= buffer[id*3+2]*255;
+				FreeImage_SetPixelColor(bitmap, j, i, &color);
+			}
 
-	std::stringstream name;
-        name<<"prueba"<<0<<".png";
-        FreeImage_Save(FIF_PNG, bitmap, name.str().c_str(), 0);
-#endif
+		std::stringstream name;
+		name<<"prueba"<<frame<<".png";
+		FreeImage_Save(FIF_PNG, bitmap, name.str().c_str(), 0);
+	}
 
 	FreeImage_DeInitialise();
 	delete mivt;

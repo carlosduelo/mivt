@@ -145,10 +145,9 @@ __global__ void cuda_rayCaster(int numRays, float3 ligth, float3 origin, float *
 	
 		if (cube[tid].state == NOCUBE)
 		{
-			screen[tid*4] = 1.0f; 
-			screen[tid*4+1] = 1.0f; 
-			screen[tid*4+2] = 1.0f; 
-			screen[tid*4+3] = 1.0f; 
+			screen[tid*3] = 1.0f; 
+			screen[tid*3+1] = 1.0f; 
+			screen[tid*3+2] = 1.0f; 
 			cube[tid].state = PAINTED;
 			return;
 		}
@@ -161,7 +160,7 @@ __global__ void cuda_rayCaster(int numRays, float3 ligth, float3 origin, float *
 			int dim = powf(2,nLevel-levelO);
 			int3 maxBox = minBox + make_int3(dim,dim,dim);
 			float3 ray = make_float3(rays[tid], rays[tid+numRays], rays[tid+2*numRays]);
-			
+
 			if  (_cuda_RayAABB(origin, ray,  &tnear, &tfar, minBox, maxBox))
 			{
 				bool hit = false;
@@ -244,10 +243,9 @@ __global__ void cuda_rayCaster(int numRays, float3 ligth, float3 origin, float *
 					float dif = fabs(n.x*l.x + n.y*l.y + n.z*l.z);
 
 					float a = Xnew.y/256.0f;
-					screen[tid*4]   =(1-a)*dif;// + 1.0f*spec;
-					screen[tid*4+1] =(a)*dif;// + 1.0f*spec;
-					screen[tid*4+2] =0.0f*dif;// + 1.0f*spec;
-					screen[tid*4+3] = 1.0f;
+					screen[tid*3]   =(1-a)*dif;// + 1.0f*spec;
+					screen[tid*3+1] =(a)*dif;// + 1.0f*spec;
+					screen[tid*3+2] =0.0f*dif;// + 1.0f*spec;
 					cube[tid].state= PAINTED;
 				}
 				else
