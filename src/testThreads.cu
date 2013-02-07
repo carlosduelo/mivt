@@ -15,10 +15,10 @@ int main(int argc, char ** argv)
 	initParams_masterWorker_t params;
 
 	// Workers
-	params.numDevices	= 0;
-	params.numWorkers[0]	= 2;
-	params.numWorkers[1]	= 2;
-	params.numWorkers[2]	= 2;
+	params.numDevices	= 1;
+	params.numWorkers[0]	= 8;
+	params.numWorkers[1]	= 8;
+	params.numWorkers[2]	= 8;
 	params.deviceID[0]	= 0;
 	params.deviceID[1]	= 1;
 	params.deviceID[2]	= 2;

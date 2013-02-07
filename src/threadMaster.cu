@@ -269,7 +269,10 @@ void threadMaster::createFrame(float * pixel_buffer)
 				if (index == numWorkers)
 					index = 0;
 			}
-			std::cout<<"Send Tile "<<ii<<" "<<jj<<std::endl;
+			index++;
+			if (index == numWorkers)
+				index = 0;
+			std::cout<<"Send Tile "<<ii<<" "<<jj<<" worker "<<index<<std::endl;
 		}
 	}
 
