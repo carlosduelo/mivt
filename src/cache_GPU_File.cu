@@ -36,7 +36,7 @@ cache_GPU_File::~cache_GPU_File()
 	cudaFree(cacheData);
 }
 
-void cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
+visibleCube_t * cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
 {
 	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
@@ -90,15 +90,18 @@ void cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t
 		}
 		else // there is no free slot
 		{
-			cube->state = NOCACHED;
-                        cube->cubeID = 0;
+			cube->state 	= NOCACHED;
+                        cube->cubeID 	= 0;
+			cube->data	= 0;
 		}
 	}
 
 	lock->unset();
+
+	return cube;
 }
 
-void cache_GPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
+visibleCube_t * cache_GPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
 {
 	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
@@ -118,4 +121,6 @@ void cache_GPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t 
 	}
 	
 	lock->unset();
+
+	return cube;
 }

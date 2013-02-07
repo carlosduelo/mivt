@@ -137,10 +137,11 @@ __global__ void cuda_fill_pixel_buffer(float * pixel_buffer, int numRays, int nu
  **************************************************************************************************************************************************************************
  */
 
-threadWorker::threadWorker(char ** argv, int id_thread, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions)
+threadWorker::threadWorker(char ** argv, int id_thread, int id_global, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions)
 {
 	// Setting id thread
 	id.id 		= id_thread;
+	id.id_global	= id_global;
 	id.deviceID 	= deviceID;
 	numWorks	= 0;
 	
@@ -324,11 +325,6 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 			throw;
 		}
 
-		int cubes = 0;
-                for(int i=0; i<numRays; i++)
-                        if (visibleCubesCPU[i].state == CUBE)
-                        	cubes++;
-	
 		cache->push(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
                 int numP = 0;
                 for(int i=0; i<numRays; i++)
@@ -344,6 +340,8 @@ void threadWorker::createFrame(int2 tile, float * buffer)
                 cudaMemcpyAsync((void*) visibleCubesGPU, (const void*) visibleCubesCPU, numRays*sizeof(visibleCube_t), cudaMemcpyHostToDevice, id.stream);
 
                 raycaster->render(rays, numRays, camera->get_position(), octree->getOctreeLevel(), cache->getCacheLevel(), octree->getnLevels(), visibleCubesGPU, cache->getCubeDim(), cache->getCubeInc(), pixel_buffer, id.stream);
+
+                cudaMemcpyAsync((void*) visibleCubesCPU, (const void*) visibleCubesGPU, numRays*sizeof(visibleCube_t), cudaMemcpyDeviceToHost, id.stream);
 
 		if (cudaSuccess != cudaStreamSynchronize(id.stream))
 		{

@@ -83,9 +83,9 @@ class lruCache
 
 		int getCacheLevel();
 
-		virtual void push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread) = 0;
+		virtual visibleCube_t * push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread) = 0;
 
-                virtual void pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread) = 0;		
+                virtual visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread) = 0;		
 };
 
 class cache_GPU_File : public lruCache
@@ -99,9 +99,9 @@ class cache_GPU_File : public lruCache
 
 		~cache_GPU_File();
 
-		void push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+		visibleCube_t * push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
 
-                void pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+                visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
 };
 
 
@@ -109,6 +109,15 @@ class Cache
 {
 	private:
 		lruCache * cache; 
+		
+	#if _BUNORDER_MAP_
+                boost::unordered_map<index_node_t, visibleCube_t *> * insertedCubes;
+        #else
+                std::map<index_node_t, visibleCube_t *> * insertedCubes;
+        #endif
+
+		lunchbox::Lock	* locks;
+
 	public:
 		Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 		

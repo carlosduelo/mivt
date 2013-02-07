@@ -20,6 +20,7 @@ typedef struct
 
 typedef struct
 {
+	int		id_global;
 	int		id;
 	int		deviceID;
 	cudaStream_t 	stream;

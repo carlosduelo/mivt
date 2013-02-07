@@ -202,21 +202,58 @@ int3 Cache::getCubeInc()
 
 void Cache::push(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread)
 {
+	#if _BUNORDER_MAP_
+		boost::unordered_map<index_node_t, visibleCube_t *> insertedCubes;
+		boost::unordered_map<index_node_t, visibleCube_t *>::iterator it;
+	#else
+		std::map<index_node_t, visibleCube_t *> insertedCubes;
+		std::map<index_node_t, visibleCube_t *>::iterator it;
+	#endif
+
 	// For each visible cube push into the cache
 	for(int i=0; i<num; i++)
 	{
 		if (visibleCubes[i].state == NOCACHED || visibleCubes[i].state == CUBE)
 		{
-			cache->push_cube(&visibleCubes[i], octreeLevel, thread);
+			it = insertedCubes.find(visibleCubes[i].id >> (3*(octreeLevel-cache->getCacheLevel())));
+			if (it == insertedCubes.end()) // If does not exist, do not push again
+			{
+				visibleCube_t * result = cache->push_cube(&visibleCubes[i], octreeLevel, thread);
+				insertedCubes.insert(std::pair<int, visibleCube_t *>(visibleCubes[i].id >> (3*(octreeLevel-cache->getCacheLevel())), result));	
+			}
+			else
+			{
+				visibleCubes[i].cubeID 	= it->second->cubeID;  
+				visibleCubes[i].state 	= it->second->state;
+				visibleCubes[i].data	= it->second->data;
+
+			}
 		}
 	}
 }
 
 void Cache::pop(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread)
 {
+	#if _BUNORDER_MAP_
+		boost::unordered_map<index_node_t, visibleCube_t *> insertedCubes;
+		boost::unordered_map<index_node_t, visibleCube_t *>::iterator it;
+	#else
+		std::map<index_node_t, visibleCube_t *> insertedCubes;
+		std::map<index_node_t, visibleCube_t *>::iterator it;
+	#endif
+
 	// For each visible cube pop out the cache
 	for(int i=0; i<num; i++)
 	{
-		cache->pop_cube(&visibleCubes[i], octreeLevel, thread);
+		if (visibleCubes[i].state == PAINTED)
+		{
+			it = insertedCubes.find(visibleCubes[i].id >> (3*(octreeLevel-cache->getCacheLevel())));
+			if (it == insertedCubes.end()) // If does not exist, do not pop again
+			{
+				cache->pop_cube(&visibleCubes[i], octreeLevel, thread);
+				insertedCubes.insert(std::pair<int, visibleCube_t *>(visibleCubes[i].id >> (3*(octreeLevel-cache->getCacheLevel())), NULL));	
+			}
+		}
 	}
 }
+

@@ -54,7 +54,7 @@ class threadWorker : public lunchbox::Thread
 
 		void createFrame(int2 tile, float * buffer);
 	public:
-		threadWorker(char ** argv, int id_thread, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions);
+		threadWorker(char ** argv, int id_thread, int id_global, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions);
 
 		~threadWorker();
 

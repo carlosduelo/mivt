@@ -1,4 +1,5 @@
 #include "threadMaster.hpp"
+
 #include "FreeImage.h"
 #include <exception>
 #include <iostream>
@@ -15,24 +16,24 @@ int main(int argc, char ** argv)
 	initParams_masterWorker_t params;
 
 	// Workers
-	params.numDevices	= 1;
-	params.numWorkers[0]	= 8;
-	params.numWorkers[1]	= 8;
-	params.numWorkers[2]	= 8;
+	params.numDevices	= 3;
+	params.numWorkers[0]	= 4;
+	params.numWorkers[1]	= 4;
+	params.numWorkers[2]	= 4;
 	params.deviceID[0]	= 0;
 	params.deviceID[1]	= 1;
 	params.deviceID[2]	= 2;
 
 	// Cache
-	params.maxElementsCache[0]	= 100;
-	params.maxElementsCache[1]	= 100;
-	params.maxElementsCache[2]	= 100;
+	params.maxElementsCache[0]	= 2500;
+	params.maxElementsCache[1]	= 2500;
+	params.maxElementsCache[2]	= 5000;
 	params.cubeInc			= 2;
 	params.cubeDim			= make_int3(32,32,32);
 	params.levelCube		= 4;
 
 	// Octree
-	params.maxLevelOctree	= 9;
+	params.maxLevelOctree	= 8;
 
 	// ray caster
 	params.rayCasterOptions.ligth_position = make_float3(512.0f, 512.0f, 512.0f);
@@ -45,7 +46,7 @@ int main(int argc, char ** argv)
 	params.displayOptions.fov_W		= 30.0f;
 	params.displayOptions.numRayPixel	= 1;
 	params.displayOptions.tileDim		= make_int2(32,32);
-	params.displayOptions.position		= make_float3(128.0f, 128.0f, 512.0f);
+	params.displayOptions.position		= make_float3(256.0f, 256.0f, 800.0f);
 
 	threadMaster * mivt = new threadMaster(&argv[1], &params);
 
