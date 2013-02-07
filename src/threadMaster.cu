@@ -46,7 +46,7 @@ threadMaster::threadMaster(char ** argv, initParams_masterWorker_t * initParams)
 		// Create octree container
 		octree[i]	= new OctreeContainer(argv[0], initParams->maxLevelOctree);
 
-		cache[i]	= new Cache(&argv[1], initParams->maxElementsCache[0], initParams->cubeDim, initParams->cubeInc, initParams->levelCube, octree[i]->getnLevels());
+		cache[i]	= new Cache(&argv[1], initParams->numWorkers[i], initParams->maxElementsCache[0], initParams->cubeDim, initParams->cubeInc, initParams->levelCube, octree[i]->getnLevels());
 	}
 
 	workers 	= new worker_t[numWorkers];
@@ -57,7 +57,7 @@ threadMaster::threadMaster(char ** argv, initParams_masterWorker_t * initParams)
 		int idW 	= 1;
 		for(int j=0; j<initParams->numWorkers[i]; j++)
 		{
-			workers[index].worker 	= new threadWorker(&argv[5], idW, index, initParams->deviceID[i], camera, cache[i], octree[i], &(initParams->rayCasterOptions));
+			workers[index].worker 	= new threadWorker(&argv[5], idW, j, initParams->deviceID[i], camera, cache[i], octree[i], &(initParams->rayCasterOptions));
 			workers[index].pipe 	= workers[index].worker->getChannel();
 			idW <<= 1;
 			//

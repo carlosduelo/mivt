@@ -104,14 +104,19 @@ class cache_GPU_File : public lruCache
                 visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
 };
 
-
 class Cache
 {
 	private:
 		lruCache * cache; 
 
+		#if _BUNORDER_MAP_
+                        boost::unordered_map<index_node_t, visibleCube_t *> * insertedCubes;
+                #else
+                        std::map<index_node_t, visibleCube_t* > * insertedCubes;
+                #endif
+
 	public:
-		Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
+		Cache(char ** argv, int p_numWorkers, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 		
 		~Cache();
 

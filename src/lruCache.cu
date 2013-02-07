@@ -167,8 +167,14 @@ int3 lruCache::getCubeInc()
 	return cubeInc;
 }
 
-Cache::Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels)
+Cache::Cache(char ** argv, int p_numWorkers, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels)
 {
+	#if _BUNORDER_MAP_
+		insertedCubes = new boost::unordered_map<index_node_t, visibleCube_t *>[p_numWorkers];
+	#else
+		insertedCubes = new std::map<index_node_t, visibleCube_t*>[p_numWorkers];
+	#endif
+
 	if (strcmp(argv[0], "GPU_FILE") == 0)
 	{
 		cache = new cache_GPU_File(&argv[1], p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels);
@@ -182,7 +188,8 @@ Cache::Cache(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int
 
 Cache::~Cache()
 {
-	delete cache;
+	delete 	cache;
+	delete[] insertedCubes;
 }
 
 int Cache::getCacheLevel()
@@ -202,11 +209,39 @@ int3 Cache::getCubeInc()
 
 void Cache::push(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread)
 {
+	#if 1
 	#if _BUNORDER_MAP_
-		boost::unordered_map<index_node_t, visibleCube_t *> insertedCubes;
 		boost::unordered_map<index_node_t, visibleCube_t *>::iterator it;
 	#else
-		std::map<index_node_t, visibleCube_t *> insertedCubes;
+		std::map<index_node_t, visibleCube_t *>::iterator it;
+	#endif
+
+	// For each visible cube push into the cache
+	for(int i=0; i<num; i++)
+	{
+		if (visibleCubes[i].state == NOCACHED || visibleCubes[i].state == CUBE)
+		{
+			it = insertedCubes[thread->id_global].find(visibleCubes[i].id >> (3*(octreeLevel-cache->getCacheLevel())));
+			if (it == insertedCubes[thread->id_global].end()) // If does not exist, do not push again
+			{
+				visibleCube_t * result = cache->push_cube(&visibleCubes[i], octreeLevel, thread);
+				insertedCubes[thread->id_global].insert(std::pair<int, visibleCube_t *>(visibleCubes[i].id >> (3*(octreeLevel-cache->getCacheLevel())), result));	
+			}
+			else
+			{
+				visibleCubes[i].cubeID 	= it->second->cubeID;  
+				visibleCubes[i].state 	= it->second->state;
+				visibleCubes[i].data	= it->second->data;
+
+			}
+		}
+	}
+	#else
+	#if _BUNORDER_MAP_
+                boost::unordered_map<index_node_t, visibleCube_t *>  insertedCubes;
+		boost::unordered_map<index_node_t, visibleCube_t *>::iterator it;
+	#else
+                std::map<index_node_t, visibleCube_t* >  insertedCubes;
 		std::map<index_node_t, visibleCube_t *>::iterator it;
 	#endif
 
@@ -230,18 +265,34 @@ void Cache::push(visibleCube_t * visibleCubes, int num, int octreeLevel, threadI
 			}
 		}
 	}
+	#endif
 }
 
 void Cache::pop(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID_t * thread)
 {
+#if 1
 	#if _BUNORDER_MAP_
-		boost::unordered_map<index_node_t, visibleCube_t *> insertedCubes;
-		boost::unordered_map<index_node_t, visibleCube_t *>::iterator it;
+		boost::unordered_map<index_node_t, visibleCube_t *>::iterator it = insertedCubes[thread->id_global].begin();
 	#else
-		std::map<index_node_t, visibleCube_t *> insertedCubes;
-		std::map<index_node_t, visibleCube_t *>::iterator it;
+		std::map<index_node_t, visibleCube_t *>::iterator it = insertedCubes[thread->id_global].begin();
 	#endif
 
+	while(it != insertedCubes[thread->id_global].begin())
+	{
+		if (it->second->state == CACHED)
+			cache->pop_cube(it->second, octreeLevel, thread);
+
+		it++;
+	}
+	insertedCubes[thread->id_global].clear();
+#else
+	#if _BUNORDER_MAP_
+                boost::unordered_map<index_node_t, visibleCube_t *>  insertedCubes;
+		boost::unordered_map<index_node_t, visibleCube_t *>::iterator it;
+	#else
+                std::map<index_node_t, visibleCube_t* >  insertedCubes;
+		std::map<index_node_t, visibleCube_t *>::iterator it;
+	#endif
 	// For each visible cube pop out the cache
 	for(int i=0; i<num; i++)
 	{
@@ -255,5 +306,6 @@ void Cache::pop(visibleCube_t * visibleCubes, int num, int octreeLevel, threadID
 			}
 		}
 	}
+#endif
 }
 
