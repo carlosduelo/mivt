@@ -20,6 +20,8 @@ cache_CPU_File::cache_CPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, 
 	// OpenFile
 	fileManager = OpenFile(argv, p_levelCube, p_nLevels, p_cubeDim, make_int3(p_cubeInc,p_cubeInc,p_cubeInc));
 
+	lock = new lunchbox::Lock();
+
 	// Allocating memory
 	std::cerr<<"Creating cache in CPU: "<< maxElements*offsetCube*sizeof(float)/1024/1024<<" MB: "<<std::endl;
 	if (cudaSuccess != cudaHostAlloc((void**)&cacheData, maxElements*offsetCube*sizeof(float),cudaHostAllocDefault))
@@ -34,6 +36,7 @@ cache_CPU_File::~cache_CPU_File()
 	delete fileManager;
 	delete queuePositions;
 	cudaFreeHost(cacheData);
+	delete lock;
 }
 
 float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
@@ -45,6 +48,8 @@ float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadI
 #else
 	std::map<index_node_t, NodeLinkedList *>::iterator it;
 #endif
+	lock->set();
+
 	// Find the cube in the CPU cache
 	it = indexStored.find(idCube);
 	if ( it != indexStored.end() ) // If exist
@@ -54,6 +59,7 @@ float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadI
 		queuePositions->moveToLastPosition(node);
 		queuePositions->addReference(node,thread->id);
 
+		lock->unset();
 		return cacheData + it->second->element*offsetCube;
 			
 	}
@@ -74,10 +80,12 @@ float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadI
 			queuePositions->moveToLastPosition(node);
 			queuePositions->addReference(node,thread->id);
 		
+			lock->unset();
 			return cacheData+ pos*offsetCube;
 		}
 		else // there is no free slot
 		{
+			lock->unset();
 			return NULL; 
 		}
 	}
@@ -92,6 +100,7 @@ void cache_CPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t 
 #else
 	std::map<index_node_t, NodeLinkedList *>::iterator it;
 #endif
+	lock->set();
 	// Find the cube in the CPU cache
 	it = indexStored.find(idCube);
 	if ( it != indexStored.end() ) // If exist remove reference
@@ -101,7 +110,9 @@ void cache_CPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t 
 	}
 	else
 	{
+		lock->unset();
 		std::cerr<<"Cache is unistable"<<std::endl;
 		throw;
 	}
+	lock->unset();
 }

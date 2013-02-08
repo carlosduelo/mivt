@@ -167,7 +167,7 @@ int3 lruCache::getCubeInc()
 	return cubeInc;
 }
 
-Cache::Cache(char ** argv, int p_numWorkers, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels)
+Cache::Cache(char ** argv, cache_CPU_File * p_cpuCache, int p_numWorkers, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels)
 {
 	#if _BUNORDER_MAP_
 		insertedCubes = new boost::unordered_map<index_node_t, visibleCube_t *>[p_numWorkers];
@@ -181,7 +181,7 @@ Cache::Cache(char ** argv, int p_numWorkers, int p_maxElements, int3 p_cubeDim, 
 	}
 	else if (strcmp(argv[0], "GPU_CPU_FILE") == 0)
 	{
-		cache = new cache_GPU_CPU_File(&argv[1], p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels);
+		cache = new cache_GPU_CPU_File(&argv[1], p_cpuCache, p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels);
 	}
 	else
 	{

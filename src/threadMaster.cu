@@ -45,8 +45,27 @@ threadMaster::threadMaster(char ** argv, initParams_masterWorker_t * initParams)
 
 		// Create octree container
 		octree[i]	= new OctreeContainer(argv[0], initParams->maxLevelOctree);
+	}
 
-		cache[i]	= new Cache(&argv[1], initParams->numWorkers[i], initParams->maxElementsCache[0], initParams->cubeDim, initParams->cubeInc, initParams->levelCube, octree[i]->getnLevels());
+	// Setting cpu cache
+	int totalElements = 0;
+	for(int i=0; i<initParams->numDevices; i++)
+		totalElements = initParams->maxElementsCache[i];
+
+	cpuCache = new cache_CPU_File(&argv[1], totalElements, initParams->cubeDim, initParams->cubeInc, initParams->levelCube, octree[0]->getnLevels()); 
+
+	for(int i=0; i<initParams->numDevices; i++)
+	{
+		std::cerr<<"Select device "<<initParams->deviceID[i]<<": ";
+		if (cudaSuccess != cudaSetDevice(initParams->deviceID[i]))
+		{
+			std::cerr<<"Fail"<<std::endl;
+			throw;
+		}
+		else
+			std::cerr<<"OK"<<std::endl;
+
+		cache[i]	= new Cache(&argv[4], cpuCache, initParams->numWorkers[i], initParams->maxElementsCache[i], initParams->cubeDim, initParams->cubeInc, initParams->levelCube, octree[i]->getnLevels());
 	}
 
 	workers 	= new worker_t[numWorkers];

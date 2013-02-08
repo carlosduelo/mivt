@@ -107,6 +107,8 @@ class cache_GPU_File : public lruCache
 class cache_CPU_File
 {
 	private:
+		lunchbox::Lock	* lock;
+
 		int3	cubeDim;
 		int3	cubeInc;
 		int3	realcubeDim;
@@ -143,7 +145,7 @@ class cache_GPU_CPU_File : public lruCache
 		// Acces to file
 		cache_CPU_File *	cpuCache;
 	public:
-		cache_GPU_CPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
+		cache_GPU_CPU_File(char ** argv, cache_CPU_File * p_cpuCache, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 
 		~cache_GPU_CPU_File();
 
@@ -164,7 +166,7 @@ class Cache
                 #endif
 
 	public:
-		Cache(char ** argv, int p_numWorkers, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
+		Cache(char ** argv, cache_CPU_File * p_cpuCache, int p_numWorkers, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 		
 		~Cache();
 

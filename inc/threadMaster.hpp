@@ -52,6 +52,7 @@ class threadMaster
 		int			numWorkers;
 
 		Camera	*		camera;
+		cache_CPU_File	*	cpuCache;
 		Cache	*		cache[MAX_DEVICES];
 		OctreeContainer *	octree[MAX_DEVICES];
 	public:

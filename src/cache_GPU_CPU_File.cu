@@ -3,11 +3,11 @@
 #include <iostream>
 #include <fstream>
 
-cache_GPU_CPU_File::cache_GPU_CPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels) :
+cache_GPU_CPU_File::cache_GPU_CPU_File(char ** argv, cache_CPU_File * p_cpuCache, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels) :
 	lruCache(p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels)
 {
 	// OpenFile
-	cpuCache =  new cache_CPU_File(argv, 4*p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels);
+	cpuCache =  p_cpuCache;
 
 	// Allocating memory
 	std::cerr<<"Creating cache in GPU: "<< maxElements*offsetCube*sizeof(float)/1024/1024<<" MB"<<std::endl; 

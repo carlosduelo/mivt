@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
 		return 0;
 	}
 
-	Cache * cache = new Cache(&argv[1], 1, 100, make_int3(4,4,4), 2, 7, 9);	
+	Cache * cache = new Cache(&argv[1], 0,1, 100, make_int3(4,4,4), 2, 7, 9);	
 
 	index_node_t inicio     = coordinateToIndex(make_int3(0,0,0), 8, 9);
         index_node_t fin        = coordinateToIndex(make_int3(255,255,255), 8, 9);
