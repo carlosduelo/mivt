@@ -1,5 +1,4 @@
 #include "threadMaster.hpp"
-
 #include "FreeImage.h"
 #include <exception>
 #include <iostream>
@@ -46,7 +45,7 @@ int main(int argc, char ** argv)
 	params.displayOptions.fov_W		= 30.0f;
 	params.displayOptions.numRayPixel	= 1;
 	params.displayOptions.tileDim		= make_int2(32,32);
-	params.displayOptions.position		= make_float3(256.0f, 256.0f, 800.0f);
+	params.displayOptions.position		= make_float3(256.0f, 200.0f, 650.0f);
 
 	threadMaster * mivt = new threadMaster(&argv[1], &params);
 

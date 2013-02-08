@@ -104,6 +104,54 @@ class cache_GPU_File : public lruCache
                 visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
 };
 
+class cache_CPU_File
+{
+	private:
+		int3	cubeDim;
+		int3	cubeInc;
+		int3	realcubeDim;
+		int	offsetCube;
+		int	levelCube;
+		int	nLevels;
+
+		#if _BUNORDER_MAP_
+			boost::unordered_map<index_node_t, NodeLinkedList *> indexStored;
+		#else
+			std::map<index_node_t, NodeLinkedList *> indexStored;
+		#endif
+
+		LinkedList	*	queuePositions;
+
+		int			maxElements;
+		float		*	cacheData;
+
+		// Acces to file
+		FileManager	*	fileManager;
+	public:
+		cache_CPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
+
+		~cache_CPU_File();
+
+		float *  push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+
+                void pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+};
+
+class cache_GPU_CPU_File : public lruCache
+{
+	private:
+		// Acces to file
+		cache_CPU_File *	cpuCache;
+	public:
+		cache_GPU_CPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
+
+		~cache_GPU_CPU_File();
+
+		visibleCube_t * push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+
+                visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+};
+
 class Cache
 {
 	private:

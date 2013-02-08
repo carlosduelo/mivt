@@ -50,7 +50,7 @@ __global__ void cuda_createRays_1(int2 tile, int2 tileDim, float * rays, int num
                 float iw  = w/W;
 
                 float3 A = (look * distance);
-                A += up * ((h/2.0f) - (ih*(i + 0.5f)));
+                A += -up * ((h/2.0f) - (ih*(i + 0.5f)));
                 A += right * (-(w/2.0f) + (iw*(j + 0.5f)));
                 A = normalize(A);
 
@@ -60,19 +60,56 @@ __global__ void cuda_createRays_1(int2 tile, int2 tileDim, float * rays, int num
 		
 	}
 }
-__global__ void cuda_createRays_2(int2 tile, int2 tileDim, float * rays, int numRays, float3 up, float3 right, float3 look, int H, int W, float h, float w, float distance)
+__global__ void cuda_createRays_2(int2 tile, int2 tileDim, float * rays, int numRays, int nRP, float3 up, float3 right, float3 look, int H, int W, float h, float w, float distance)
 {
 	int id = blockIdx.y * blockDim.x * gridDim.y + blockIdx.x * blockDim.x + threadIdx.x;
 
         if (id < numRays)
         {
-		int i  = (id) / W;
-                int j  = (id) % W;
+		int i  = (tile.x * tileDim.x) + (id / tileDim.y);
+                int j  = (tile.y * tileDim.y) + (id % tileDim.y);
+	
+		//printf("%d %d %d %d %d %d %d\n",id,tile.x, tile.y,tileDim.x,tileDim.y,i,j);
 
                 float ih  = h/H;
                 float iw  = w/W;
 
+                float3 A = (look * distance);
+                A += -up * ((h/2.0f));//) - (ih*(i + 0.5f)));
+                A += right * (-(w/2.0f));//) + (iw*(j + 0.5f)));
+
+		float3 B;
+		B = A - (ih*(i + 1.0f/3.0f));
+		B = A + (iw*(j + 1.0f/3.0f));
+                B = normalize(B);
+
+                rays[id*nRP]                = B.x;
+                rays[id*nRP+numRays]        = B.y;
+                rays[id*nRP+2*numRays]      = B.z;
 		
+		B = A - (ih*(i + 1.0f/3.0f));
+		B = A + (iw*(j + 2.0f/3.0f));
+                B = normalize(B);
+
+                rays[id*nRP+1]                = B.x;
+                rays[id*nRP+numRays+1]        = B.y;
+                rays[id*nRP+2*numRays+1]      = B.z;
+
+		B = A - (ih*(i + 2.0f/3.0f));
+		B = A + (iw*(j + 1.0f/3.0f));
+                B = normalize(B);
+
+                rays[id*nRP+2]                = B.x;
+                rays[id*nRP+numRays+2]        = B.y;
+                rays[id*nRP+2*numRays+2]      = B.z;
+
+		B = A - (ih*(i + 2.0f/3.0f));
+		B = A + (iw*(j + 2.0f/3.0f));
+                B = normalize(B);
+
+                rays[id*nRP+3]                = B.x;
+                rays[id*nRP+numRays+3]        = B.y;
+                rays[id*nRP+2*numRays+3]      = B.z;
 	}
 }
 __global__ void cuda_createRays_3(int2 tile, int2 tileDim, float * rays, int numRays, float3 up, float3 right, float3 look, int H, int W, float h, float w, float distance)
@@ -268,7 +305,7 @@ void threadWorker::createRays(int2 tile, int numPixels)
 		}
 		case 2:
 		{
-			cuda_createRays_2<<<blocks, threads, 0, id.stream>>>(tile, camera->getTileDim() ,rays, numPixels, camera->get_up(), camera->get_right(), camera->get_look(), camera->getHeight(), camera->getWidth(), camera->getHeight_screen(), camera->getWidth_screen(), camera->getDistance());
+			cuda_createRays_2<<<blocks, threads, 0, id.stream>>>(tile, camera->getTileDim() ,rays, numPixels, camera->getNumRayPixel(), camera->get_up(), camera->get_right(), camera->get_look(), camera->getHeight(), camera->getWidth(), camera->getHeight_screen(), camera->getWidth_screen(), camera->getDistance());
 			break;
 		}
 		case 3:
@@ -341,6 +378,7 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 
                 raycaster->render(rays, numRays, camera->get_position(), octree->getOctreeLevel(), cache->getCacheLevel(), octree->getnLevels(), visibleCubesGPU, cache->getCubeDim(), cache->getCubeInc(), pixel_buffer, id.stream);
 
+		#if 0
                 cudaMemcpyAsync((void*) visibleCubesCPU, (const void*) visibleCubesGPU, numRays*sizeof(visibleCube_t), cudaMemcpyDeviceToHost, id.stream);
 
 		if (cudaSuccess != cudaStreamSynchronize(id.stream))
@@ -348,6 +386,7 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
 			throw;
 		}
+		#endif
 
 		cache->pop(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
 

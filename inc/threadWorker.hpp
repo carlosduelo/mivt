@@ -16,7 +16,7 @@
 #include <lunchbox/thread.h>
 #include <lunchbox/lock.h>
 
-#define MAX_WORKS 100
+#define MAX_WORKS 1
 
 class threadWorker : public lunchbox::Thread
 {

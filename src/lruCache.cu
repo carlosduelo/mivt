@@ -179,6 +179,10 @@ Cache::Cache(char ** argv, int p_numWorkers, int p_maxElements, int3 p_cubeDim, 
 	{
 		cache = new cache_GPU_File(&argv[1], p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels);
 	}
+	else if (strcmp(argv[0], "GPU_CPU_FILE") == 0)
+	{
+		cache = new cache_GPU_CPU_File(&argv[1], p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels);
+	}
 	else
 	{
 		std::cerr<<"Error: cache options error"<<std::endl;

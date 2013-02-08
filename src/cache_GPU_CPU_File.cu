@@ -3,14 +3,11 @@
 #include <iostream>
 #include <fstream>
 
-cache_GPU_File::cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels) :
+cache_GPU_CPU_File::cache_GPU_CPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels) :
 	lruCache(p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels)
 {
 	// OpenFile
-	fileManager = OpenFile(argv, p_levelCube, p_nLevels, p_cubeDim, make_int3(p_cubeInc,p_cubeInc,p_cubeInc));
-
-	// Create temporate cube
-	tempCube = new float[offsetCube];
+	cpuCache =  new cache_CPU_File(argv, 4*p_maxElements, p_cubeDim, p_cubeInc, p_levelCube, p_nLevels);
 
 	// Allocating memory
 	std::cerr<<"Creating cache in GPU: "<< maxElements*offsetCube*sizeof(float)/1024/1024<<" MB"<<std::endl; 
@@ -21,14 +18,14 @@ cache_GPU_File::cache_GPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, 
 	}
 }
 
-cache_GPU_File::~cache_GPU_File()
+cache_GPU_CPU_File::~cache_GPU_CPU_File()
 {
-	delete tempCube;
+	delete cpuCache;
 	delete queuePositions;
 	cudaFree(cacheData);
 }
 
-visibleCube_t * cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
+visibleCube_t * cache_GPU_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
 {
 	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
@@ -38,6 +35,8 @@ visibleCube_t * cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel,
 	std::map<index_node_t, NodeLinkedList *>::iterator it;
 #endif
 	lock->set();
+		
+	float * pCube = cpuCache->push_cube(cube, octreeLevel, thread);
 
 	// Find the cube in the CPU cache
 	it = indexStored.find(idCube);
@@ -61,24 +60,33 @@ visibleCube_t * cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel,
 
 		if (node != NULL)
 		{
-			indexStored.insert(std::pair<int, NodeLinkedList *>(idCube, node));
-			if (removedCube!= (index_node_t)0)
-				indexStored.erase(indexStored.find(removedCube));
-
-			unsigned pos   = node->element;
-			fileManager->readCube(idCube, tempCube);//cacheData+ pos*offsetCube);
-
-			cube->data 	= cacheData + pos*offsetCube;
-			cube->state 	= CACHED;
-			cube->cubeID 	= idCube;
-
-			if (cudaSuccess != cudaMemcpy((void*) cube->data, (void*) tempCube, offsetCube*sizeof(float), cudaMemcpyHostToDevice))
+			// search on CPU cache
+			if (pCube == NULL)
 			{
-				std::cerr<<"Cache GPU_File: error copying to a device"<<std::endl;
+				cube->state 	= NOCACHED;
+				cube->cubeID 	= 0;
+				cube->data	= 0;
 			}
+			else
+			{
+				indexStored.insert(std::pair<int, NodeLinkedList *>(idCube, node));
+				if (removedCube!= (index_node_t)0)
+					indexStored.erase(indexStored.find(removedCube));
 
-			queuePositions->moveToLastPosition(node);
-			queuePositions->addReference(node,thread->id);
+				unsigned pos   = node->element;
+
+				cube->data 	= cacheData + pos*offsetCube;
+				cube->state 	= CACHED;
+				cube->cubeID 	= idCube;
+
+				if (cudaSuccess != cudaMemcpyAsync((void*) cube->data, (void*) pCube, offsetCube*sizeof(float), cudaMemcpyHostToDevice, thread->stream))
+				{
+					std::cerr<<"Cache GPU_CPU_File: error copying to a device"<<std::endl;
+				}
+
+				queuePositions->moveToLastPosition(node);
+				queuePositions->addReference(node,thread->id);
+			}
 		}
 		else // there is no free slot
 		{
@@ -93,7 +101,7 @@ visibleCube_t * cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel,
 	return cube;
 }
 
-visibleCube_t * cache_GPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
+visibleCube_t * cache_GPU_CPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
 {
 	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
@@ -110,6 +118,7 @@ visibleCube_t * cache_GPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, 
 	{
 		NodeLinkedList * node = it->second;
 		queuePositions->removeReference(node,thread->id);
+		cpuCache->pop_cube(cube, octreeLevel, thread);
 	}
 	else
 	{

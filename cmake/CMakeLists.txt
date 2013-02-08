@@ -19,10 +19,14 @@ IF(FREEIMAGE_FOUND)
 ELSE(FREEIMAGE_FOUND)
 	MESSAGE(STATUS "Looking for FreeImage - not found")
 ENDIF(FREEIMAGE_FOUND)
+find_package(OpenGL)
 
 
 #Set flags
 list(APPEND CUDA_NVCC_FLAGS -arch=sm_20)
+list(APPEND CUDA_NVCC_FLAGS -O3)
+list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-O3)
+list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-Wall)
 
 set(SRC ${mivt_SOURCE_DIR}/../src/)
 set(INC  ${mivt_SOURCE_DIR}/../inc/)
@@ -36,14 +40,24 @@ cuda_add_executable(testFileManager ${SRC}/testFileManager.cu ${testFileManagerO
 target_link_libraries(testFileManager hdf5)
 
 # Tarject testThreadMaster 
-cuda_compile(testThreadMasterOBJ ${SRC}/cache_GPU_File.cu  ${SRC}/Camera.cu  ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu  ${SRC}/lruCache.cu  ${SRC}/octree_completeGPU.cu  ${SRC}/octreeContainer.cu  ${SRC}/rayCaster.cu  ${SRC}/threadMaster.cu ${SRC}/threadWorker.cu)
+cuda_compile(testThreadMasterOBJ ${SRC}/cache_GPU_File.cu ${SRC}/cache_CPU_File.cu ${SRC}/cache_GPU_CPU_File.cu  ${SRC}/Camera.cu  ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu  ${SRC}/lruCache.cu  ${SRC}/octree_completeGPU.cu  ${SRC}/octreeContainer.cu  ${SRC}/rayCaster.cu  ${SRC}/threadMaster.cu ${SRC}/threadWorker.cu)
 cuda_add_executable(testThreadMaster ${SRC}/testThreads.cu ${testThreadMasterOBJ})
 target_link_libraries(testThreadMaster hdf5)
 target_link_libraries(testThreadMaster Lunchbox)
 target_link_libraries(testThreadMaster freeimage)
 
 # Tarject testCache
-cuda_compile(testCacheOBJ ${SRC}/cache_GPU_File.cu  ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu  ${SRC}/lruCache.cu)
+cuda_compile(testCacheOBJ ${SRC}/cache_GPU_File.cu ${SRC}/cache_CPU_File.cu ${SRC}/cache_GPU_CPU_File.cu  ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu  ${SRC}/lruCache.cu)
 cuda_add_executable(testCache ${SRC}/testCache.cu ${testCacheOBJ})
 target_link_libraries(testCache hdf5)
 target_link_libraries(testCache Lunchbox)
+
+# Tarject testThreadMaster 
+cuda_compile(mivtOBJ ${SRC}/cache_GPU_File.cu  ${SRC}/cache_CPU_File.cu ${SRC}/cache_GPU_CPU_File.cu ${SRC}/Camera.cu  ${SRC}/fileUtil.cu  ${SRC}/hdf5File.cu  ${SRC}/lruCache.cu  ${SRC}/octree_completeGPU.cu  ${SRC}/octreeContainer.cu  ${SRC}/rayCaster.cu  ${SRC}/threadMaster.cu ${SRC}/threadWorker.cu)
+cuda_add_executable(mivt ${SRC}/mivt.cu ${mivtOBJ})
+target_link_libraries(mivt hdf5)
+target_link_libraries(mivt Lunchbox)
+target_link_libraries(mivt GL)
+target_link_libraries(mivt glut)
+
+cuda_build_clean_target()

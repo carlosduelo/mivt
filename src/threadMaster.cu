@@ -72,9 +72,10 @@ threadMaster::~threadMaster()
 {
 	work_packet_t work;
 	work.work_id = END; 
+	work.pixel_buffer 	= 0;
 
 	for(int i=0; i<numWorkers; i++)
-		workers[i].pipe->push(work);
+		workers[i].pipe->pushBlock(work);
 
 	delete camera;
 
@@ -114,12 +115,13 @@ void	threadMaster::increaseSampling()
 
 	work_packet_t work;
 	work.work_id = CHANGE_ANTIALIASSING; 
+	work.pixel_buffer 	= 0;
 
 	int index = 0;
 	for(int i=0; i<numDevices; i++)
 		for(int j=0; j<numWorkersDevice[i]; j++)
 		{
-			workers[index].pipe->push(work);
+			workers[index].pipe->pushBlock(work);
 			index++;
 		}
 }
@@ -130,12 +132,13 @@ void	threadMaster::decreaseSampling()
 
 	work_packet_t work;
 	work.work_id = CHANGE_ANTIALIASSING; 
+	work.pixel_buffer 	= 0;
 
 	int index = 0;
 	for(int i=0; i<numDevices; i++)
 		for(int j=0; j<numWorkersDevice[i]; j++)
 		{
-			workers[index].pipe->push(work);
+			workers[index].pipe->pushBlock(work);
 			index++;
 		}
 }
@@ -184,12 +187,13 @@ void threadMaster::increaseLevelOctree()
 {
 	work_packet_t work;
 	work.work_id = UP_LEVEL_OCTREE; 
+	work.pixel_buffer 	= 0;
 
 	int index = 0;
 	for(int i=0; i<numDevices; i++)
 		for(int j=0; j<numWorkersDevice[i]; j++)
 		{
-			workers[index].pipe->push(work);
+			workers[index].pipe->pushBlock(work);
 			index++;
 		}
 }
@@ -198,12 +202,13 @@ void threadMaster::decreaseLevelOctree()
 {
 	work_packet_t work;
 	work.work_id = DOWN_LEVEL_OCTREE; 
+	work.pixel_buffer 	= 0;
 
 	int index = 0;
 	for(int i=0; i<numDevices; i++)
 		for(int j=0; j<numWorkersDevice[i]; j++)
 		{
-			workers[index].pipe->push(work);
+			workers[index].pipe->pushBlock(work);
 			index++;
 		}
 }
@@ -213,12 +218,13 @@ void threadMaster::increaseStep()
 {
 	work_packet_t work;
 	work.work_id = INCREASE_STEP; 
+	work.pixel_buffer 	= 0;
 
 	int index = 0;
 	for(int i=0; i<numDevices; i++)
 		for(int j=0; j<numWorkersDevice[i]; j++)
 		{
-			workers[index].pipe->push(work);
+			workers[index].pipe->pushBlock(work);
 			index++;
 		}
 }
@@ -226,13 +232,14 @@ void threadMaster::increaseStep()
 void threadMaster::decreaseStep()
 {
 	work_packet_t work;
-	work.work_id = DECREASE_STEP; 
+	work.work_id 		= DECREASE_STEP; 
+	work.pixel_buffer 	= 0;
 
 	int index = 0;
 	for(int i=0; i<numDevices; i++)
 		for(int j=0; j<numWorkersDevice[i]; j++)
 		{
-			workers[index].pipe->push(work);
+			workers[index].pipe->pushBlock(work);
 			index++;
 		}
 }
@@ -250,7 +257,8 @@ void threadMaster::createFrame(float * pixel_buffer)
 	int  j = W/tileDim.y;
 
 	work_packet_t work;
-	work.work_id = NEW_FRAME;
+	work.work_id 		= NEW_FRAME;
+	work.pixel_buffer 	= 0;
 	for(int index=0; index<numWorkers; index++)
 		workers[index].pipe->pushBlock(work);
 
