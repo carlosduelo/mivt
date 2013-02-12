@@ -24,6 +24,7 @@ find_package(OpenGL)
 
 #Set flags
 list(APPEND CUDA_NVCC_FLAGS -arch=sm_20)
+#list(APPEND CUDA_NVCC_FLAGS -G)
 list(APPEND CUDA_NVCC_FLAGS -O3)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-O3)
 list(APPEND CUDA_NVCC_FLAGS -Xcompiler;-Wall)

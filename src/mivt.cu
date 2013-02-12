@@ -102,13 +102,13 @@ int main(int argc, char ** argv)
 	initParams_masterWorker_t params;
 
 	// Workers
-	params.numDevices	= 3;
-	params.numWorkers[0]	= 4;
+	params.numDevices	= 1;
+	params.numWorkers[0]	= 2;
 	params.numWorkers[1]	= 4;
 	params.numWorkers[2]	= 8;
-	params.deviceID[0]	= 0;
+	params.deviceID[0]	= 2;
 	params.deviceID[1]	= 1;
-	params.deviceID[2]	= 2;
+	params.deviceID[2]	= 0;
 
 	// Cache
 	params.maxElementsCache[0]	= 2500;
@@ -116,10 +116,10 @@ int main(int argc, char ** argv)
 	params.maxElementsCache[2]	= 20000;
 	params.cubeInc			= 2;
 	params.cubeDim			= make_int3(32,32,32);
-	params.levelCube		= 4;
+	params.levelCube		= 8;
 
 	// Octree
-	params.maxLevelOctree	= 9;
+	params.maxLevelOctree	= 10;
 
 	// ray caster
 	params.rayCasterOptions.ligth_position = make_float3(512.0f, 512.0f, 512.0f);

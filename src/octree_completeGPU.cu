@@ -789,7 +789,8 @@ bool Octree_completeGPU::getBoxIntersected(float3 camera_position, float * rays,
 
 	//std::cerr<<"Launching kernek blocks ("<<blocks.x<<","<<blocks.y<<","<<blocks.z<<") threads ("<<threads.x<<","<<threads.y<<","<<threads.z<<") error: "<< cudaGetErrorString(cudaGetLastError())<<std::endl;
 
-	std::cerr<<"Coping to host visibleCubes: "<< cudaGetErrorString(cudaMemcpyAsync((void*)visibleCPU, (const void*)visibleGPU, numRays*sizeof(visibleCube_t), cudaMemcpyDeviceToHost, stream)) << std::endl;
+	//std::cerr<<"Coping to host visibleCubes: "<< cudaGetErrorString(
+cudaMemcpyAsync((void*)visibleCPU, (const void*)visibleGPU, numRays*sizeof(visibleCube_t), cudaMemcpyDeviceToHost, stream);//) << std::endl;
 
 	//std::cerr<<"End Getting firts box intersected"<<std::endl;
 

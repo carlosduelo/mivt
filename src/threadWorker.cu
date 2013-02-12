@@ -14,6 +14,8 @@
  **************************************************************************************************************************************************************************
  */
 
+
+// NOT WORK, OF COURSE
 __global__ void cuda_refactorPixelBuffer(float * pixel_buffer, int numRays, int numRaysPixel)
 {
 	int i 	= blockIdx.y * blockDim.x * gridDim.y + blockIdx.x * blockDim.x +threadIdx.x;
@@ -22,16 +24,16 @@ __global__ void cuda_refactorPixelBuffer(float * pixel_buffer, int numRays, int 
 	{
 		int index 	= 3 * i * numRaysPixel;
 		int pos		= index + 3;
-
+	
 		for(int j=1; j<numRaysPixel; j++)
 		{
-			pixel_buffer[index]	+= pixel_buffer[pos]; 
-			pixel_buffer[index+1]	+= pixel_buffer[pos+1];
-			pixel_buffer[index+2]	+= pixel_buffer[pos+2];
+			pixel_buffer[index]   += pixel_buffer[pos]; 
+			pixel_buffer[index+1] += pixel_buffer[pos+1];
+			pixel_buffer[index+2] += pixel_buffer[pos+2];
 		}
-		pixel_buffer[index] 	/= numRaysPixel;
-		pixel_buffer[index+1]	/= numRaysPixel;
-		pixel_buffer[index+2]	/= numRaysPixel;
+		pixel_buffer[index]   /= numRaysPixel; 
+		pixel_buffer[index+1] /= numRaysPixel;
+		pixel_buffer[index+2] /= numRaysPixel;
 	}
 }
 
@@ -50,8 +52,8 @@ __global__ void cuda_createRays_1(int2 tile, int2 tileDim, float * rays, int num
                 float iw  = w/W;
 
                 float3 A = (look * distance);
-                A += -up * ((h/2.0f) - (ih*(i + 0.5f)));
-                A += right * (-(w/2.0f) + (iw*(j + 0.5f)));
+                A += -up * 	((h/2.0f) - (ih*(i + 0.5f)));
+                A += right * 	(-(w/2.0f) + (iw*(j + 0.5f)));
                 A = normalize(A);
 
                 rays[id]                = A.x;
@@ -69,77 +71,299 @@ __global__ void cuda_createRays_2(int2 tile, int2 tileDim, float * rays, int num
 		int i  = (tile.x * tileDim.x) + (id / tileDim.y);
                 int j  = (tile.y * tileDim.y) + (id % tileDim.y);
 	
-		//printf("%d %d %d %d %d %d %d\n",id,tile.x, tile.y,tileDim.x,tileDim.y,i,j);
-
                 float ih  = h/H;
                 float iw  = w/W;
 
-                float3 A = (look * distance);
-                A += -up * ((h/2.0f));//) - (ih*(i + 0.5f)));
-                A += right * (-(w/2.0f));//) + (iw*(j + 0.5f)));
-
-		float3 B;
-		B = A - (ih*(i + 1.0f/3.0f));
-		B = A + (iw*(j + 1.0f/3.0f));
+                float3 B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/3.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/3.0f))));
                 B = normalize(B);
 
-                rays[id*nRP]                = B.x;
-                rays[id*nRP+numRays]        = B.y;
-                rays[id*nRP+2*numRays]      = B.z;
-		
-		B = A - (ih*(i + 1.0f/3.0f));
-		B = A + (iw*(j + 2.0f/3.0f));
+                rays[id*nRP]                	= B.x;
+                rays[id*nRP+numRays*nRP]	= B.y;
+                rays[id*nRP+2*numRays*nRP]      = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/3.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (2.0f/3.0f))));
                 B = normalize(B);
 
-                rays[id*nRP+1]                = B.x;
-                rays[id*nRP+numRays+1]        = B.y;
-                rays[id*nRP+2*numRays+1]      = B.z;
+                rays[id*nRP+1]			= B.x;
+                rays[id*nRP+1+numRays*nRP]      = B.y;
+                rays[id*nRP+1+2*numRays*nRP]    = B.z;
 
-		B = A - (ih*(i + 2.0f/3.0f));
-		B = A + (iw*(j + 1.0f/3.0f));
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (2.0f/3.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/3.0f))));
                 B = normalize(B);
 
-                rays[id*nRP+2]                = B.x;
-                rays[id*nRP+numRays+2]        = B.y;
-                rays[id*nRP+2*numRays+2]      = B.z;
+                rays[id*nRP+2]			= B.x;
+                rays[id*nRP+2+numRays*nRP]    	= B.y;
+                rays[id*nRP+2+2*numRays*nRP]    = B.z;
 
-		B = A - (ih*(i + 2.0f/3.0f));
-		B = A + (iw*(j + 2.0f/3.0f));
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (2.0f/3.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (2.0f/3.0f))));
                 B = normalize(B);
 
-                rays[id*nRP+3]                = B.x;
-                rays[id*nRP+numRays+3]        = B.y;
-                rays[id*nRP+2*numRays+3]      = B.z;
+                rays[id*nRP+3]                	= B.x;
+                rays[id*nRP+3+numRays*nRP]      = B.y;
+                rays[id*nRP+3+2*numRays*nRP]    = B.z;
 	}
 }
-__global__ void cuda_createRays_3(int2 tile, int2 tileDim, float * rays, int numRays, float3 up, float3 right, float3 look, int H, int W, float h, float w, float distance)
+__global__ void cuda_createRays_3(int2 tile, int2 tileDim, float * rays, int numRays, int nRP, float3 up, float3 right, float3 look, int H, int W, float h, float w, float distance)
 {
 	int id = blockIdx.y * blockDim.x * gridDim.y + blockIdx.x * blockDim.x + threadIdx.x;
 
         if (id < numRays)
         {
-		int i  = (id) / W;
-                int j  = (id) % W;
-
+		int i  = (tile.x * tileDim.x) + (id / tileDim.y);
+                int j  = (tile.y * tileDim.y) + (id % tileDim.y);
+	
                 float ih  = h/H;
                 float iw  = w/W;
 
-		
+                float3 B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/6.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/6.0f))));
+                B = normalize(B);
+
+                rays[id*nRP]                	= B.x;
+                rays[id*nRP+numRays*nRP]	= B.y;
+                rays[id*nRP+2*numRays*nRP]      = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/6.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (5.0f/6.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+1]			= B.x;
+                rays[id*nRP+1+numRays*nRP]      = B.y;
+                rays[id*nRP+1+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (5.0f/6.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (5.0f/6.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+2]			= B.x;
+                rays[id*nRP+2+numRays*nRP]    	= B.y;
+                rays[id*nRP+2+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (5.0f/6.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/6.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+3]                	= B.x;
+                rays[id*nRP+3+numRays*nRP]      = B.y;
+                rays[id*nRP+3+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (2.0f/6.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+4]			= B.x;
+                rays[id*nRP+4+numRays*nRP]      = B.y;
+                rays[id*nRP+4+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (4.0f/6.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+5]			= B.x;
+                rays[id*nRP+5+numRays*nRP]    	= B.y;
+                rays[id*nRP+5+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (4.0f/6.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+6]                	= B.x;
+                rays[id*nRP+6+numRays*nRP]      = B.y;
+                rays[id*nRP+6+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (2.0f/6.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+7]			= B.x;
+                rays[id*nRP+7+numRays*nRP]    	= B.y;
+                rays[id*nRP+7+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+8]                	= B.x;
+                rays[id*nRP+8+numRays*nRP]      = B.y;
+                rays[id*nRP+8+2*numRays*nRP]    = B.z;
 	}
 }
-__global__ void cuda_createRays_4(int2 tile, int2 tileDim, float * rays, int numRays, float3 up, float3 right, float3 look, int H, int W, float h, float w, float distance)
+__global__ void cuda_createRays_4(int2 tile, int2 tileDim, float * rays, int numRays, int nRP, float3 up, float3 right, float3 look, int H, int W, float h, float w, float distance)
 {
 	int id = blockIdx.y * blockDim.x * gridDim.y + blockIdx.x * blockDim.x + threadIdx.x;
 
         if (id < numRays)
         {
-		int i  = (id) / W;
-                int j  = (id) % W;
-
+		int i  = (tile.x * tileDim.x) + (id / tileDim.y);
+                int j  = (tile.y * tileDim.y) + (id % tileDim.y);
+	
                 float ih  = h/H;
                 float iw  = w/W;
 
-		
+                float3 B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP]                	= B.x;
+                rays[id*nRP+numRays*nRP]	= B.y;
+                rays[id*nRP+2*numRays*nRP]      = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (2.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+1]			= B.x;
+                rays[id*nRP+1+numRays*nRP]      = B.y;
+                rays[id*nRP+1+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (3.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+2]			= B.x;
+                rays[id*nRP+2+numRays*nRP]    	= B.y;
+                rays[id*nRP+2+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (1.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (4.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+3]                	= B.x;
+                rays[id*nRP+3+numRays*nRP]      = B.y;
+                rays[id*nRP+3+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (2.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+4]			= B.x;
+                rays[id*nRP+4+numRays*nRP]      = B.y;
+                rays[id*nRP+4+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (2.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (2.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+5]			= B.x;
+                rays[id*nRP+5+numRays*nRP]    	= B.y;
+                rays[id*nRP+5+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (2.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (3.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+6]                	= B.x;
+                rays[id*nRP+6+numRays*nRP]      = B.y;
+                rays[id*nRP+6+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (2.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (4.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+7]			= B.x;
+                rays[id*nRP+7+numRays*nRP]    	= B.y;
+                rays[id*nRP+7+2*numRays*nRP]    = B.z;
+
+		B += -up * 	((h/2.0f) - (ih*(i + (3.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+8]                	= B.x;
+                rays[id*nRP+8+numRays*nRP]	= B.y;
+                rays[id*nRP+8+2*numRays*nRP]      = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (3.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (2.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+9]			= B.x;
+                rays[id*nRP+9+numRays*nRP]      = B.y;
+                rays[id*nRP+9+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (2.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
+                B = normalize(B);
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (3.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (3.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+10]			= B.x;
+                rays[id*nRP+10+numRays*nRP]    	= B.y;
+                rays[id*nRP+10+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (3.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (4.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+11]                	= B.x;
+                rays[id*nRP+11+numRays*nRP]      = B.y;
+                rays[id*nRP+11+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (4.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+12]			= B.x;
+                rays[id*nRP+12+numRays*nRP]      = B.y;
+                rays[id*nRP+12+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (4.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (2.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+13]			= B.x;
+                rays[id*nRP+13+numRays*nRP]    	= B.y;
+                rays[id*nRP+13+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (4.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (3.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+14]                	= B.x;
+                rays[id*nRP+14+numRays*nRP]      = B.y;
+                rays[id*nRP+14+2*numRays*nRP]    = B.z;
+
+                B = (look * distance);
+		B += -up * 	((h/2.0f) - (ih*(i + (4.0f/5.0f))));
+		B += right * 	(-(w/2.0f) + (iw*(j + (4.0f/5.0f))));
+                B = normalize(B);
+
+                rays[id*nRP+15]			= B.x;
+                rays[id*nRP+15+numRays*nRP]    	= B.y;
+                rays[id*nRP+15+2*numRays*nRP]    = B.z;
 	}
 }
 
@@ -204,8 +428,8 @@ threadWorker::threadWorker(char ** argv, int id_thread, int id_global, int devic
 	pipe		= new Channel(MAX_WORKS);
 	raycaster	= new rayCaster(p_octreeC->getIsosurface(), rCasterOptions);
 	int2 tileDim	= camera->getTileDim();
-	numRays		= tileDim.x * tileDim.y * camera->getNumRayPixel() * camera->getNumRayPixel();
-	maxRays		= tileDim.x * tileDim.y * camera->getMaxRayPixel() * camera->getMaxRayPixel();
+	numRays		= tileDim.x * tileDim.y * camera->getNumRayPixel();
+	maxRays		= tileDim.x * tileDim.y * camera->getMaxRayPixel();
 
 	createStructures();
 
@@ -303,19 +527,19 @@ void threadWorker::createRays(int2 tile, int numPixels)
 			cuda_createRays_1<<<blocks, threads, 0, id.stream>>>(tile, camera->getTileDim() ,rays, numPixels, camera->get_up(), camera->get_right(), camera->get_look(), camera->getHeight(), camera->getWidth(), camera->getHeight_screen(), camera->getWidth_screen(), camera->getDistance());
 			break;
 		}
-		case 2:
+		case 4:
 		{
 			cuda_createRays_2<<<blocks, threads, 0, id.stream>>>(tile, camera->getTileDim() ,rays, numPixels, camera->getNumRayPixel(), camera->get_up(), camera->get_right(), camera->get_look(), camera->getHeight(), camera->getWidth(), camera->getHeight_screen(), camera->getWidth_screen(), camera->getDistance());
 			break;
 		}
-		case 3:
+		case 9:
 		{
-			cuda_createRays_3<<<blocks, threads, 0, id.stream>>>(tile, camera->getTileDim() ,rays, numPixels, camera->get_up(), camera->get_right(), camera->get_look(), camera->getHeight(), camera->getWidth(), camera->getHeight_screen(), camera->getWidth_screen(), camera->getDistance());
+			cuda_createRays_3<<<blocks, threads, 0, id.stream>>>(tile, camera->getTileDim() ,rays, numPixels, camera->getNumRayPixel(), camera->get_up(), camera->get_right(), camera->get_look(), camera->getHeight(), camera->getWidth(), camera->getHeight_screen(), camera->getWidth_screen(), camera->getDistance());
 			break;
 		}
-		case 4:
+		case 16:
 		{
-			cuda_createRays_4<<<blocks, threads, 0, id.stream>>>(tile, camera->getTileDim() ,rays, numPixels, camera->get_up(), camera->get_right(), camera->get_look(), camera->getHeight(), camera->getWidth(), camera->getHeight_screen(), camera->getWidth_screen(), camera->getDistance());
+			cuda_createRays_4<<<blocks, threads, 0, id.stream>>>(tile, camera->getTileDim() ,rays, numPixels, camera->getNumRayPixel(), camera->get_up(), camera->get_right(), camera->get_look(), camera->getHeight(), camera->getWidth(), camera->getHeight_screen(), camera->getWidth_screen(), camera->getDistance());
 			break;
 		}
 		default:
@@ -330,9 +554,39 @@ void threadWorker::refactorPixelBuffer(int numPixels)
 {
 	if (camera->getNumRayPixel() > 1)
 	{
+		float * caca = new float[3*maxRays];
+
+		cudaMemcpyAsync((void*)caca, (void*) pixel_buffer, 3*maxRays*sizeof(float), cudaMemcpyDeviceToHost, id.stream);
+		if (cudaSuccess != cudaStreamSynchronize(id.stream))
+		{
+			throw;
+		}
+		for(int i=0; i<numPixels; i++)
+		{
+			int pos = 3 * i * camera->getNumRayPixel();
+
+			float r = 0.0f;
+			float g = 0.0f;
+			float b = 0.0f;
+			
+			for(int j=0; j<3*camera->getNumRayPixel(); j+=3)
+			{
+				r     	+= caca[pos+j];
+				g	+= caca[pos+j+1];
+				b	+= caca[pos+j+2];
+			}
+			caca[3*i]	= r / camera->getNumRayPixel(); 
+			caca[3*i+1]	= g / camera->getNumRayPixel();
+			caca[3*i+2]	= b / camera->getNumRayPixel();
+		}
+
+		cudaMemcpyAsync((void*)pixel_buffer, (void*) caca, 3*maxRays*sizeof(float), cudaMemcpyHostToDevice, id.stream);
+		delete[] caca;
+		#if 0
 		dim3 threads = getThreads(numPixels);
         	dim3 blocks = getBlocks(numPixels);
- 		cuda_refactorPixelBuffer<<<blocks, threads, 0 , id.stream>>>(pixel_buffer, numPixels, camera->getNumRayPixel()*camera->getNumRayPixel());
+ 		cuda_refactorPixelBuffer<<<blocks, threads, 0 , id.stream>>>(pixel_buffer, numPixels, camera->getNumRayPixel());
+		#endif
 	}
 }
 

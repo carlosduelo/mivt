@@ -19,33 +19,33 @@ int main(int argc, char ** argv)
 	params.numWorkers[0]	= 4;
 	params.numWorkers[1]	= 4;
 	params.numWorkers[2]	= 4;
-	params.deviceID[0]	= 0;
-	params.deviceID[1]	= 1;
-	params.deviceID[2]	= 2;
+	params.deviceID[0]	= 2;
+	params.deviceID[1]	= 0;
+	params.deviceID[2]	= 1;
 
 	// Cache
-	params.maxElementsCache[0]	= 2500;
+	params.maxElementsCache[0]	= 5500;
 	params.maxElementsCache[1]	= 2500;
-	params.maxElementsCache[2]	= 5000;
+	params.maxElementsCache[2]	= 2500;
 	params.cubeInc			= 2;
 	params.cubeDim			= make_int3(32,32,32);
 	params.levelCube		= 4;
 
 	// Octree
-	params.maxLevelOctree	= 8;
+	params.maxLevelOctree	= 9;
 
 	// ray caster
 	params.rayCasterOptions.ligth_position = make_float3(512.0f, 512.0f, 512.0f);
 
 	// Camera
-	params.displayOptions.height		= 512;
-	params.displayOptions.width		= 512;
+	params.displayOptions.height		= 1024;
+	params.displayOptions.width		= 1024;
 	params.displayOptions.distance		= 50.0f;
 	params.displayOptions.fov_H		= 30.0f;
 	params.displayOptions.fov_W		= 30.0f;
-	params.displayOptions.numRayPixel	= 1;
+	params.displayOptions.numRayPixel	= 4;
 	params.displayOptions.tileDim		= make_int2(32,32);
-	params.displayOptions.position		= make_float3(256.0f, 200.0f, 650.0f);
+	params.displayOptions.position		= make_float3(128.0f, 250.0f, 512.0f);
 
 	threadMaster * mivt = new threadMaster(&argv[1], &params);
 
@@ -88,6 +88,6 @@ int main(int argc, char ** argv)
 	}
 
 	FreeImage_DeInitialise();
-	delete mivt;
 	cudaFreeHost(buffer);
+	delete mivt;
 }

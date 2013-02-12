@@ -50,7 +50,7 @@ threadMaster::threadMaster(char ** argv, initParams_masterWorker_t * initParams)
 	// Setting cpu cache
 	int totalElements = 0;
 	for(int i=0; i<initParams->numDevices; i++)
-		totalElements = initParams->maxElementsCache[i];
+		totalElements += initParams->maxElementsCache[i];
 
 	cpuCache = new cache_CPU_File(&argv[1], totalElements, initParams->cubeDim, initParams->cubeInc, initParams->levelCube, octree[0]->getnLevels()); 
 
