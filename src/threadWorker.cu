@@ -289,6 +289,7 @@ __global__ void cuda_createRays_4(int2 tile, int2 tileDim, float * rays, int num
                 rays[id*nRP+7+numRays*nRP]    	= B.y;
                 rays[id*nRP+7+2*numRays*nRP]    = B.z;
 
+                B = (look * distance);
 		B += -up * 	((h/2.0f) - (ih*(i + (3.0f/5.0f))));
 		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
                 B = normalize(B);
@@ -305,11 +306,6 @@ __global__ void cuda_createRays_4(int2 tile, int2 tileDim, float * rays, int num
                 rays[id*nRP+9]			= B.x;
                 rays[id*nRP+9+numRays*nRP]      = B.y;
                 rays[id*nRP+9+2*numRays*nRP]    = B.z;
-
-                B = (look * distance);
-		B += -up * 	((h/2.0f) - (ih*(i + (2.0f/5.0f))));
-		B += right * 	(-(w/2.0f) + (iw*(j + (1.0f/5.0f))));
-                B = normalize(B);
 
                 B = (look * distance);
 		B += -up * 	((h/2.0f) - (ih*(i + (3.0f/5.0f))));
@@ -382,7 +378,6 @@ __global__ void cuda_fill_pixel_buffer(float * pixel_buffer, int numRays, int nu
 	if (i < numRays)
 	{
 		int pos = i*3;
-		int ray = i % numRaysPixel;
 		int x = i / tileDim.x;
 		int y = i % tileDim.x;
 
@@ -561,10 +556,12 @@ void threadWorker::refactorPixelBuffer(int numPixels)
 		{
 			throw;
 		}
+
 		for(int i=0; i<numPixels; i++)
 		{
-			int pos = 3 * i * camera->getNumRayPixel();
+			int pos = 3 * i * camera->getNumRayPixel();;
 
+#if 1
 			float r = 0.0f;
 			float g = 0.0f;
 			float b = 0.0f;
@@ -575,12 +572,17 @@ void threadWorker::refactorPixelBuffer(int numPixels)
 				g	+= caca[pos+j+1];
 				b	+= caca[pos+j+2];
 			}
-			caca[3*i]	= r / camera->getNumRayPixel(); 
-			caca[3*i+1]	= g / camera->getNumRayPixel();
-			caca[3*i+2]	= b / camera->getNumRayPixel();
+			caca[3*i]	= r / (float)camera->getNumRayPixel(); 
+			caca[3*i+1]	= g / (float)camera->getNumRayPixel();
+			caca[3*i+2]	= b / (float)camera->getNumRayPixel();
+#else
+			caca[3*i]	= caca[pos+3*14];   
+			caca[3*i+1]	= caca[pos+3*14+1];
+			caca[3*i+2]	= caca[pos+3*14+2];
+#endif
 		}
 
-		cudaMemcpyAsync((void*)pixel_buffer, (void*) caca, 3*maxRays*sizeof(float), cudaMemcpyHostToDevice, id.stream);
+		cudaMemcpyAsync((void*)pixel_buffer, (void*) caca, 3*numPixels*sizeof(float), cudaMemcpyHostToDevice, id.stream);
 		delete[] caca;
 		#if 0
 		dim3 threads = getThreads(numPixels);

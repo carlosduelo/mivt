@@ -47,8 +47,8 @@ Camera::Camera(camera_settings_t * settings)
 	}
 
 
-	look 	= make_float3(0.0, 0.0, -1.0);
-	up 	= make_float3(0.0, 1.0, 0.0);
+	look 	= make_float3(0.0f, 0.0f, -1.0f);
+	up 	= make_float3(0.0f, 1.0f, 0.0f);
 	right   = cross(look, up);
 	RotatedX	= 0.0;
 	RotatedY	= 0.0;

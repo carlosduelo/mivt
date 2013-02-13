@@ -12,9 +12,6 @@
 #include "cutil_math.h"
 #include <lunchbox/lock.h>
 
-#define _BUNORDER_MAP_ 1
-
-
 #if _BUNORDER_MAP_
 	#include <boost/unordered_map.hpp>
 #else
