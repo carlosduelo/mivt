@@ -96,30 +96,20 @@ threadMaster::~threadMaster()
 	for(int i=0; i<numWorkers; i++)
 		workers[i].pipe->pushBlock(work);
 
-	delete camera;
+	for(int i=0; i<numWorkers; i++)
+		workers[i].worker->join();
 
-	int index = 0;
+	for(int i=0; i<numWorkers; i++)
+		delete workers[i].worker;
+
 	for(int i=0; i<numDevices; i++)
 	{
-		std::cerr<<"Select device "<<devicesID[i]<<": ";
-		if (cudaSuccess != cudaSetDevice(devicesID[i]))
-		{
-			std::cerr<<"Fail"<<std::endl;
-			throw;
-		}
-		else
-			std::cerr<<"OK"<<std::endl;
-
-		for(int j=0; j<numWorkersDevice[i]; j++)
-		{
-			workers[index].worker->join();
-			delete workers[index].worker;
-			index++;
-		}
-
 		delete cache[i];
 		delete octree[i];
 	}
+
+	delete camera;
+	delete cpuCache;
 }
 
 // Camera options

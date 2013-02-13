@@ -43,9 +43,9 @@ int main(int argc, char ** argv)
 	params.displayOptions.distance		= 50.0f;
 	params.displayOptions.fov_H		= 30.0f;
 	params.displayOptions.fov_W		= 30.0f;
-	params.displayOptions.numRayPixel	= 4;
+	params.displayOptions.numRayPixel	= 1;
 	params.displayOptions.tileDim		= make_int2(32,32);
-	params.displayOptions.position		= make_float3(128.0f, 250.0f, 512.0f);
+	params.displayOptions.position		= make_float3(2048.0f, 180.0f, 3500.0f);
 
 	threadMaster * mivt = new threadMaster(&argv[1], &params);
 

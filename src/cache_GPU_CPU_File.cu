@@ -20,7 +20,6 @@ cache_GPU_CPU_File::cache_GPU_CPU_File(char ** argv, cache_CPU_File * p_cpuCache
 
 cache_GPU_CPU_File::~cache_GPU_CPU_File()
 {
-	delete cpuCache;
 	delete queuePositions;
 	cudaFree(cacheData);
 }
