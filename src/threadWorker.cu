@@ -620,6 +620,9 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 
 		cache->push(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
                 int numP = 0;
+		int caca = 0;
+		int caca2 = 0;
+		int caca3 = 0;
                 for(int i=0; i<numRays; i++)
                         if (visibleCubesCPU[i].state == PAINTED)
                                 numP++;
@@ -629,6 +632,7 @@ void threadWorker::createFrame(int2 tile, float * buffer)
                         notEnd = false;
                         break;
                 }
+		else
 
                 cudaMemcpyAsync((void*) visibleCubesGPU, (const void*) visibleCubesCPU, numRays*sizeof(visibleCube_t), cudaMemcpyHostToDevice, id.stream);
 

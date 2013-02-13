@@ -19,20 +19,20 @@ int main(int argc, char ** argv)
 	params.numWorkers[0]	= 4;
 	params.numWorkers[1]	= 4;
 	params.numWorkers[2]	= 4;
-	params.deviceID[0]	= 2;
-	params.deviceID[1]	= 0;
+	params.deviceID[0]	= 1;
+	params.deviceID[1]	= 2;
 	params.deviceID[2]	= 1;
 
 	// Cache
-	params.maxElementsCache[0]	= 5500;
-	params.maxElementsCache[1]	= 2500;
-	params.maxElementsCache[2]	= 2500;
+	params.maxElementsCache[0]	= 2000;
+	params.maxElementsCache[1]	= 8500;
+	params.maxElementsCache[2]	= 2000;
 	params.cubeInc			= 2;
 	params.cubeDim			= make_int3(32,32,32);
-	params.levelCube		= 4;
+	params.levelCube		= 8;
 
 	// Octree
-	params.maxLevelOctree	= 9;
+	params.maxLevelOctree	= 10;
 
 	// ray caster
 	params.rayCasterOptions.ligth_position = make_float3(512.0f, 512.0f, 512.0f);

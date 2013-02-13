@@ -33,10 +33,10 @@ visibleCube_t * cache_GPU_CPU_File::push_cube(visibleCube_t * cube, int octreeLe
 #else
 	std::map<index_node_t, NodeLinkedList *>::iterator it;
 #endif
-	lock->set();
 		
 	float * pCube = cpuCache->push_cube(cube, octreeLevel, thread);
 
+	lock->set();
 	// Find the cube in the CPU cache
 	it = indexStored.find(idCube);
 	if ( it != indexStored.end() ) // If exist
@@ -109,6 +109,7 @@ visibleCube_t * cache_GPU_CPU_File::pop_cube(visibleCube_t * cube, int octreeLev
 #else
 	std::map<index_node_t, NodeLinkedList *>::iterator it;
 #endif
+
 	lock->set();
 
 	// Find the cube in the CPU cache
