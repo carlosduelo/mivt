@@ -29,6 +29,18 @@ cache_CPU_File::cache_CPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, 
 		std::cerr<<"LRUCache: Error creating cpu cache"<<std::endl;
 		throw;
 	}
+
+	#ifdef _PROFILING_M_
+                access = 0;
+                missR = 0;
+                missN = 0;
+                hits = 0;
+		pops = 0;
+                timeAccess = 0.0;
+                timeMiss = 0.0;
+                timeHits = 0.0;
+		timePop = 0.0;
+	#endif
 }
 
 cache_CPU_File::~cache_CPU_File()
@@ -37,34 +49,64 @@ cache_CPU_File::~cache_CPU_File()
 	delete queuePositions;
 	cudaFreeHost(cacheData);
 	delete lock;
+
+	#ifdef _PROFILING_M_
+	std::cout<<"CPU CACHE SUMMARY:"<<std::endl;
+	std::cout<<" Access: "		<<access<<" time spend "<<timeAccess<<" seconds "<<"average time "<<timeAccess/access<<" seconds"<<std::endl;
+	std::cout<<" Hits: "		<<hits<<" time spend "<<timeHits<<" seconds "<<"average time "<<timeHits/hits<<" seconds"<<std::endl;
+	std::cout<<" Miss Read: "	<<missR<<" time spend "<<timeMiss<<" seconds "<<"average time "<<timeMiss/missR<<" seconds"<<std::endl;
+	std::cout<<" Miss Empty: "	<<missN<<" time spend "<<0<<" seconds "<<"average time "<<0/missN<<" seconds"<<std::endl;
+	std::cout<<" Pops:"		<<pops<<" time spend "<<timePop<<" seconds "<<"average time "<<timePop/pops<<" seconds"<<std::endl;
+	#endif
 }
 
 float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
 {
 	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
-#if _BUNORDER_MAP_
+#ifdef _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
 #else
 	std::map<index_node_t, NodeLinkedList *>::iterator it;
 #endif
 	lock->set();
+	
+#ifdef _PROFILING_M_
+	struct timeval st, end;
+	gettimeofday(&st, NULL);
+	access++;
+#endif
 
 	// Find the cube in the CPU cache
 	it = indexStored.find(idCube);
 	if ( it != indexStored.end() ) // If exist
 	{
+#ifdef _PROFILING_M_
+	struct timeval stOP, endOP;
+	gettimeofday(&stOP, NULL);
+#endif
 		NodeLinkedList * node = it->second;
 
 		queuePositions->moveToLastPosition(node);
 		queuePositions->addReference(node,thread->id);
 
+#ifdef _PROFILING_M_
+	hits++;
+	gettimeofday(&end, NULL);
+	timeAccess += ((end.tv_sec  - st.tv_sec) * 1000000u + end.tv_usec - st.tv_usec) / 1.e6;
+	gettimeofday(&endOP, NULL);
+	timeHits += ((endOP.tv_sec  - stOP.tv_sec) * 1000000u + endOP.tv_usec - stOP.tv_usec) / 1.e6;
+#endif
 		lock->unset();
 		return cacheData + it->second->element*offsetCube;
 			
 	}
 	else // If not exists
 	{
+#ifdef _PROFILING_M_
+	struct timeval stOP, endOP;
+	gettimeofday(&stOP, NULL);
+#endif
 		index_node_t 	 removedCube = (index_node_t)0;
 		NodeLinkedList * node = queuePositions->getFirstFreePosition(idCube, &removedCube);
 
@@ -75,16 +117,33 @@ float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadI
 				indexStored.erase(indexStored.find(removedCube));
 
 			unsigned pos   = node->element;
-			fileManager->readCube(idCube, cacheData+ pos*offsetCube);
 
 			queuePositions->moveToLastPosition(node);
 			queuePositions->addReference(node,thread->id);
-		
+
+			fileManager->readCube(idCube, cacheData+ pos*offsetCube);
+
 			lock->unset();
+		
+#ifdef _PROFILING_M_
+	missR++;
+	gettimeofday(&end, NULL);
+	timeAccess += ((end.tv_sec  - st.tv_sec) * 1000000u + end.tv_usec - st.tv_usec) / 1.e6;
+	gettimeofday(&endOP, NULL);
+	timeMiss += ((endOP.tv_sec  - stOP.tv_sec) * 1000000u + endOP.tv_usec - stOP.tv_usec) / 1.e6;
+#endif
+
 			return cacheData+ pos*offsetCube;
 		}
 		else // there is no free slot
 		{
+#ifdef _PROFILING_M_
+	missN++;
+	gettimeofday(&end, NULL);
+	timeAccess += ((end.tv_sec  - st.tv_sec) * 1000000u + end.tv_usec - st.tv_usec) / 1.e6;
+	gettimeofday(&endOP, NULL);
+	timeMiss += ((endOP.tv_sec  - stOP.tv_sec) * 1000000u + endOP.tv_usec - stOP.tv_usec) / 1.e6;
+#endif
 			lock->unset();
 			return NULL; 
 		}
@@ -95,12 +154,17 @@ void cache_CPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t 
 {
 	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
-#if _BUNORDER_MAP_
+#ifdef _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
 #else
 	std::map<index_node_t, NodeLinkedList *>::iterator it;
 #endif
 	lock->set();
+#ifdef _PROFILING_M_
+	struct timeval stOP, endOP;
+	gettimeofday(&stOP, NULL);
+	pops++;
+#endif
 	// Find the cube in the CPU cache
 	it = indexStored.find(idCube);
 	if ( it != indexStored.end() ) // If exist remove reference
@@ -114,5 +178,9 @@ void cache_CPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t 
 		std::cerr<<"Cache is unistable"<<std::endl;
 		throw;
 	}
+#ifdef _PROFILING_M_
+	gettimeofday(&endOP, NULL);
+	timePop += ((endOP.tv_sec  - stOP.tv_sec) * 1000000u + endOP.tv_usec - stOP.tv_usec) / 1.e6;
+#endif
 	lock->unset();
 }

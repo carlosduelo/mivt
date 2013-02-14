@@ -78,7 +78,7 @@ threadMaster::threadMaster(char ** argv, initParams_masterWorker_t * initParams)
 		{
 			workers[index].worker 	= new threadWorker(&argv[5], idW, j, initParams->deviceID[i], camera, cache[i], octree[i], &(initParams->rayCasterOptions));
 			workers[index].pipe 	= workers[index].worker->getChannel();
-			idW << 1;
+			idW <<= 1;
 			//
 			workers[index].worker->start();
 			

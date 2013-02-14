@@ -62,6 +62,7 @@ __global__ void cuda_createRays_1(int2 tile, int2 tileDim, float * rays, int num
 		
 	}
 }
+
 __global__ void cuda_createRays_2(int2 tile, int2 tileDim, float * rays, int numRays, int nRP, float3 up, float3 right, float3 look, int H, int W, float h, float w, float distance)
 {
 	int id = blockIdx.y * blockDim.x * gridDim.y + blockIdx.x * blockDim.x + threadIdx.x;
@@ -393,11 +394,11 @@ __global__ void cuda_fill_pixel_buffer(float * pixel_buffer, int numRays, int nu
  **************************************************************************************************************************************************************************
  */
 
-threadWorker::threadWorker(char ** argv, int id_thread, int id_global, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions)
+threadWorker::threadWorker(char ** argv, int id_thread, int id_local, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions)
 {
 	// Setting id thread
 	id.id 		= id_thread;
-	id.id_global	= id_global;
+	id.id_local	= id_local;
 	id.deviceID 	= deviceID;
 	numWorks	= 0;
 	
@@ -438,6 +439,18 @@ threadWorker::threadWorker(char ** argv, int id_thread, int id_global, int devic
 		throw;
 	}
 
+	#ifdef _PROFILING_M_
+	numTiles = 0;
+	numIterations = 0;
+	timeTotal = 0;
+	timeOctree = 0;
+	timeCachePush = 0;
+	timeCachePop = 0;
+	timeRayCasting = 0;
+	timeRefactorPB = 0;
+	#endif
+
+
 }
 
 threadWorker::~threadWorker()
@@ -448,6 +461,19 @@ threadWorker::~threadWorker()
 	delete octree;
 	delete raycaster;
 	destroyStructures();
+
+	#ifdef _PROFILING_M_
+	std::cout<<"THREAD WORKER "<<id.id_local<<" device "<<id.deviceID<<" SUMMARY:"<<std::endl;
+	std::cout<<" Complete time execution "<<completeExecution<<" seconds"<<std::endl;
+	std::cout<<" Tiles procesed "<<numTiles<<std::endl;
+	std::cout<<" Total iteracions "<<numIterations<<" average tile/iterations "<<(float)numIterations/(float)numTiles<<std::endl;
+	std::cout<<" Time processing tiles "<<timeTotal<<" seconds "<<std::endl;
+	std::cout<<" Time in octree "<<timeOctree<<" seconds"<<" time octree per iteration "<<timeOctree/numIterations<<" seconds"<<std::endl;
+	std::cout<<" Time in cache push "<<timeCachePush<<" seconds"<<" time cache push per iteration "<<timeCachePush/numIterations<<" seconds"<<std::endl;
+	std::cout<<" Time in cache pop "<<timeCachePop<<" seconds"<<" time cache pop per iteration "<<timeCachePop/numIterations<<" seconds"<<std::endl;
+	std::cout<<" Time in ray casting "<<timeRayCasting<<" seconds"<<" time ray casting per iteration "<<timeRayCasting/numIterations<<" seconds"<<std::endl;
+	std::cout<<" Time in refactor pixel "<<timeRefactorPB<<" seconds"<<" time refactor pixel buffer per iteration "<<timeRefactorPB/numIterations<<" seconds"<<std::endl;
+	#endif
 }
 
 void threadWorker::destroyStructures()
@@ -594,6 +620,11 @@ void threadWorker::refactorPixelBuffer(int numPixels)
 
 void threadWorker::createFrame(int2 tile, float * buffer)
 {
+#ifdef _PROFILING_M_
+struct timeval st, end;
+struct timeval stOP, endOP;
+gettimeofday(&st, NULL);
+#endif
 	int2 tileDim 	= camera->getTileDim();
 	int numPixels 	= tileDim.x * tileDim.y;
 	bool notEnd 	= true;
@@ -611,18 +642,23 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 
         while(notEnd)
         {
+#ifdef _PROFILING_M_
+        gettimeofday(&stOP, NULL);
+#endif
 		octree->getBoxIntersected(camera->get_position(), rays, numRays, visibleCubesGPU, visibleCubesCPU, id.stream);
 		if (cudaSuccess != cudaStreamSynchronize(id.stream))
 		{
 			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
 			throw;
 		}
-
+#ifdef _PROFILING_M_
+        gettimeofday(&endOP, NULL);
+        timeOctree += ((endOP.tv_sec  - stOP.tv_sec) * 1000000u + endOP.tv_usec - stOP.tv_usec) / 1.e6;
+        gettimeofday(&stOP, NULL);
+#endif
 		cache->push(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
+
                 int numP = 0;
-		int caca = 0;
-		int caca2 = 0;
-		int caca3 = 0;
                 for(int i=0; i<numRays; i++)
                         if (visibleCubesCPU[i].state == PAINTED)
                                 numP++;
@@ -635,21 +671,25 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 		else
 
                 cudaMemcpyAsync((void*) visibleCubesGPU, (const void*) visibleCubesCPU, numRays*sizeof(visibleCube_t), cudaMemcpyHostToDevice, id.stream);
+#ifdef _PROFILING_M_
+        gettimeofday(&endOP, NULL);
+        timeCachePush += ((endOP.tv_sec  - stOP.tv_sec) * 1000000u + endOP.tv_usec - stOP.tv_usec) / 1.e6;
+        gettimeofday(&stOP, NULL);
+#endif
 
                 raycaster->render(rays, numRays, camera->get_position(), octree->getOctreeLevel(), cache->getCacheLevel(), octree->getnLevels(), visibleCubesGPU, cache->getCubeDim(), cache->getCubeInc(), pixel_buffer, id.stream);
-
-		#if 0
-                cudaMemcpyAsync((void*) visibleCubesCPU, (const void*) visibleCubesGPU, numRays*sizeof(visibleCube_t), cudaMemcpyDeviceToHost, id.stream);
-
-		if (cudaSuccess != cudaStreamSynchronize(id.stream))
-		{
-			std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<": Error creating frame on tile ("<<tile.x<<","<<tile.y<<")"<<std::endl;
-			throw;
-		}
-		#endif
+#ifdef _PROFILING_M_
+        gettimeofday(&endOP, NULL);
+        timeRayCasting += ((endOP.tv_sec  - stOP.tv_sec) * 1000000u + endOP.tv_usec - stOP.tv_usec) / 1.e6;
+        gettimeofday(&stOP, NULL);
+#endif
 
 		cache->pop(visibleCubesCPU, numRays, octree->getOctreeLevel(), &id);
 
+#ifdef _PROFILING_M_
+        gettimeofday(&endOP, NULL);
+        timeCachePop += ((endOP.tv_sec  - stOP.tv_sec) * 1000000u + endOP.tv_usec - stOP.tv_usec) / 1.e6;
+#endif
                 iterations++;
 	}
 #else
@@ -658,6 +698,9 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 	cuda_fill_pixel_buffer<<<blocks, threads, 0, id.stream>>>(pixel_buffer, numRays, camera->getNumRayPixel(), tile, camera->getTileDim(), camera->getWidth(), camera->getHeight());
 #endif
 
+#ifdef _PROFILING_M_
+        gettimeofday(&stOP, NULL);
+#endif
 	// Refactor pixel_buffer and copy
 	refactorPixelBuffer(numPixels);
 
@@ -670,7 +713,19 @@ void threadWorker::createFrame(int2 tile, float * buffer)
 		throw;
 	}
 
+#ifdef _PROFILING_M_
+        gettimeofday(&endOP, NULL);
+        timeRefactorPB += ((endOP.tv_sec  - stOP.tv_sec) * 1000000u + endOP.tv_usec - stOP.tv_usec) / 1.e6;
+#endif
+
 	std::cerr<<"Thread "<<id.id<<" on device "<<id.deviceID<<" iterations per frame "<<iterations<<" for tile "<<tile.x<<" "<<tile.y<<std::endl;
+
+#ifdef _PROFILING_M_
+gettimeofday(&end, NULL);
+timeTotal += ((end.tv_sec  - st.tv_sec) * 1000000u + end.tv_usec - st.tv_usec) / 1.e6;
+numTiles++;
+numIterations += iterations;
+#endif
 }
 
 
@@ -692,6 +747,11 @@ void threadWorker::signalFinishFrame(int secret_word)
 
 void threadWorker::run()
 {
+
+#ifdef _PROFILING_M_
+gettimeofday(&stCP, NULL);
+#endif
+
 	std::cerr<<"Thread: " << id.id<<" started device "<<id.deviceID<<": ";
 	if (cudaSuccess != cudaSetDevice(id.deviceID))
 	{
@@ -782,4 +842,8 @@ void threadWorker::run()
 
 		std::cout<<"Thread: " << id.id<<" on device "<<id.deviceID<<" new task done"<<std::endl;
 	}
+#ifdef _PROFILING_M_
+gettimeofday(&endCP, NULL);
+completeExecution = ((endCP.tv_sec  - stCP.tv_sec) * 1000000u + endCP.tv_usec - stCP.tv_usec) / 1.e6;
+#endif
 }

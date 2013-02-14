@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
 	params.levelCube		= 8;
 
 	// Octree
-	params.maxLevelOctree	= 10;
+	params.maxLevelOctree	= 8;
 
 	// ray caster
 	params.rayCasterOptions.ligth_position = make_float3(512.0f, 512.0f, 512.0f);
@@ -48,9 +48,6 @@ int main(int argc, char ** argv)
 	params.displayOptions.position		= make_float3(2048.0f, 180.0f, 3500.0f);
 
 	threadMaster * mivt = new threadMaster(&argv[1], &params);
-
-	mivt->increaseLevelOctree();
-	mivt->decreaseLevelOctree();
 
 	float * buffer = 0;
 	std::cerr<<"Allocating pixel buffer: ";

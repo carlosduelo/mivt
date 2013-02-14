@@ -16,6 +16,10 @@
 #include <lunchbox/thread.h>
 #include <lunchbox/lock.h>
 
+#ifdef _PROFILING_M_
+	#include <sys/time.h>
+#endif
+
 #define MAX_WORKS 1
 
 class threadWorker : public lunchbox::Thread
@@ -42,6 +46,19 @@ class threadWorker : public lunchbox::Thread
 
 		float	*	pixel_buffer;
 
+		#ifdef _PROFILING_M_
+		struct timeval stCP, endCP;
+		int	numTiles;
+		int	numIterations;
+		double  completeExecution;
+		double	timeTotal;
+		double	timeOctree;
+		double 	timeCachePush;
+		double  timeCachePop;
+		double	timeRayCasting;
+		double  timeRefactorPB;
+		#endif
+
 		void createStructures();
 
 		void destroyStructures();
@@ -54,7 +71,7 @@ class threadWorker : public lunchbox::Thread
 
 		void createFrame(int2 tile, float * buffer);
 	public:
-		threadWorker(char ** argv, int id_thread, int id_global, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions);
+		threadWorker(char ** argv, int id_thread, int id_local, int deviceID, Camera * p_camera, Cache * p_cache, OctreeContainer * p_octreeC, rayCaster_options_t * rCasterOptions);
 
 		~threadWorker();
 

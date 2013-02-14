@@ -32,7 +32,7 @@ visibleCube_t * cache_GPU_File::push_cube(visibleCube_t * cube, int octreeLevel,
 {
 	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
-#if _BUNORDER_MAP_
+#ifdef _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
 #else
 	std::map<index_node_t, NodeLinkedList *>::iterator it;
@@ -97,7 +97,7 @@ visibleCube_t * cache_GPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, 
 {
 	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
 
-#if _BUNORDER_MAP_
+#ifdef _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
 #else
 	std::map<index_node_t, NodeLinkedList *>::iterator it;

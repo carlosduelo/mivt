@@ -12,10 +12,14 @@
 #include "cutil_math.h"
 #include <lunchbox/lock.h>
 
-#if _BUNORDER_MAP_
+#ifdef _BUNORDER_MAP_
 	#include <boost/unordered_map.hpp>
 #else
 	#include <map>
+#endif
+
+#ifdef _PROFILING_M_
+	#include <sys/time.h>
 #endif
 
 class NodeLinkedList
@@ -60,7 +64,7 @@ class lruCache
 		int	levelCube;
 		int	nLevels;
 
-		#if _BUNORDER_MAP_
+		#ifdef _BUNORDER_MAP_
 			boost::unordered_map<index_node_t, NodeLinkedList *> indexStored;
 		#else
 			std::map<index_node_t, NodeLinkedList *> indexStored;
@@ -104,6 +108,9 @@ class cache_GPU_File : public lruCache
                 visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
 };
 
+
+
+
 class cache_CPU_File
 {
 	private:
@@ -116,7 +123,7 @@ class cache_CPU_File
 		int	levelCube;
 		int	nLevels;
 
-		#if _BUNORDER_MAP_
+		#ifdef _BUNORDER_MAP_
 			boost::unordered_map<index_node_t, NodeLinkedList *> indexStored;
 		#else
 			std::map<index_node_t, NodeLinkedList *> indexStored;
@@ -129,7 +136,21 @@ class cache_CPU_File
 
 		// Acces to file
 		FileManager	*	fileManager;
+
+		#ifdef _PROFILING_M_
+		int	access;
+		int	missR;
+		int	missN;
+		int	hits;
+		int	pops;
+		double	timeAccess;
+		double	timeMiss;
+		double 	timeHits;
+		double  timePop;
+		#endif
+
 	public:
+
 		cache_CPU_File(char ** argv, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 
 		~cache_CPU_File();
@@ -144,6 +165,18 @@ class cache_GPU_CPU_File : public lruCache
 	private:
 		// Acces to file
 		cache_CPU_File *	cpuCache;
+
+		#ifdef _PROFILING_M_
+		int	access;
+		int	missR;
+		int	missN;
+		int	hits;
+		int	pops;
+		double	timeAccess;
+		double	timeMiss;
+		double 	timeHits;
+		double  timePop;
+		#endif
 	public:
 		cache_GPU_CPU_File(char ** argv, cache_CPU_File * p_cpuCache, int p_maxElements, int3 p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 
@@ -154,12 +187,14 @@ class cache_GPU_CPU_File : public lruCache
                 visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
 };
 
+
+
 class Cache
 {
 	private:
 		lruCache * cache; 
 
-		#if _BUNORDER_MAP_
+		#ifdef _BUNORDER_MAP_
                         boost::unordered_map<index_node_t, visibleCube_t *> * insertedCubes;
                 #else
                         std::map<index_node_t, visibleCube_t* > * insertedCubes;
