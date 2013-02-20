@@ -48,8 +48,8 @@ class LinkedList
 
 		NodeLinkedList * 	moveToLastPosition(NodeLinkedList * node);	
 
-		void 			removeReference(NodeLinkedList * node, int ref);
-		void 			addReference(NodeLinkedList * node, int ref);
+		void 			removeReference(NodeLinkedList * node);
+		void 			addReference(NodeLinkedList * node);
 };
 
 class lruCache
@@ -87,9 +87,9 @@ class lruCache
 
 		int getCacheLevel();
 
-		virtual visibleCube_t * push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread) = 0;
+		virtual float * push_cube(index_node_t idCube, threadID_t * thread) = 0;
 
-                virtual visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread) = 0;		
+                virtual void  pop_cube(index_node_t idCube) = 0;		
 };
 
 class cache_GPU_File : public lruCache
@@ -103,9 +103,9 @@ class cache_GPU_File : public lruCache
 
 		~cache_GPU_File();
 
-		visibleCube_t * push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+		float * push_cube(index_node_t idCube, threadID_t * thread);
 
-                visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+                void  pop_cube(index_node_t idCube);		
 };
 
 
@@ -155,9 +155,9 @@ class cache_CPU_File
 
 		~cache_CPU_File();
 
-		float *  push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+		float *  push_cube(index_node_t  idCube);
 
-                void pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+                void pop_cube(index_node_t idCube);
 };
 
 class cache_GPU_CPU_File : public lruCache
@@ -182,12 +182,17 @@ class cache_GPU_CPU_File : public lruCache
 
 		~cache_GPU_CPU_File();
 
-		visibleCube_t * push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+		float * push_cube(index_node_t idCube, threadID_t * thread);
 
-                visibleCube_t * pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread);
+                void  pop_cube(index_node_t idCube);		
 };
 
-
+typedef struct
+{
+	index_node_t 	cubeID;
+	float	*	data;
+	int		state;
+} cacheElement_t;
 
 class Cache
 {
@@ -195,9 +200,9 @@ class Cache
 		lruCache * cache; 
 
 		#ifdef _BUNORDER_MAP_
-                        boost::unordered_map<index_node_t, visibleCube_t *> * insertedCubes;
+                        boost::unordered_map<index_node_t, cacheElement_t > * insertedCubes;
                 #else
-                        std::map<index_node_t, visibleCube_t* > * insertedCubes;
+                        std::map<index_node_t, cacheElement_t > * insertedCubes;
                 #endif
 
 	public:

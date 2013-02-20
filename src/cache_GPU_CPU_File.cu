@@ -6,16 +6,14 @@
 typedef struct
 {
 	cache_CPU_File *	cpuCache;
-	int 			 octreeLevel;
-	visibleCube_t * 	cube;
-	threadID_t * 		thread;
+	index_node_t 		idCube;
 } callback_struct_t;
 
 void unLockCPUCube(cudaStream_t stream, cudaError_t status, void *data)
 {
 	callback_struct_t * packet = (callback_struct_t*) data;
 
-	packet->cpuCache->pop_cube(packet->cube, packet->octreeLevel, packet->thread);
+	packet->cpuCache->pop_cube(packet->idCube);
 
 	delete packet;
 }
@@ -63,10 +61,8 @@ cache_GPU_CPU_File::~cache_GPU_CPU_File()
 	#endif
 }
 
-visibleCube_t * cache_GPU_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
+float * cache_GPU_CPU_File::push_cube(index_node_t idCube, threadID_t * thread)
 {
-	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
-
 #ifdef _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
 #else
@@ -80,6 +76,9 @@ visibleCube_t * cache_GPU_CPU_File::push_cube(visibleCube_t * cube, int octreeLe
 	gettimeofday(&st, NULL);
 	access++;
 #endif
+
+	float * cube = 0;
+
 	// Find the cube in the GPU cache
 	it = indexStored.find(idCube);
 	if ( it != indexStored.end() ) // If exist
@@ -91,12 +90,10 @@ visibleCube_t * cache_GPU_CPU_File::push_cube(visibleCube_t * cube, int octreeLe
 		NodeLinkedList * node = it->second;
 		
 		unsigned pos	= node->element;
-		cube->data 	= cacheData + pos*offsetCube;
-		cube->state 	= CACHED;
-		cube->cubeID 	= idCube;
+		cube 	= cacheData + pos*offsetCube;
 
 		queuePositions->moveToLastPosition(node);
-		queuePositions->addReference(node,thread->id);
+		queuePositions->addReference(node);
 #ifdef _PROFILING_M_
 	hits++;
 	gettimeofday(&endOP, NULL);
@@ -116,31 +113,22 @@ visibleCube_t * cache_GPU_CPU_File::push_cube(visibleCube_t * cube, int octreeLe
 		if (node != NULL)
 		{
 			// Search in cpu cache and check as locked
-			float * pCube = cpuCache->push_cube(cube, octreeLevel, thread);
+			float * pCube = cpuCache->push_cube(idCube);
 
 			// search on CPU cache
-			if (pCube == NULL)
-			{
-				cube->state 	= NOCACHED;
-				cube->cubeID 	= 0;
-				cube->data	= 0;
-			}
-			else
+			if (pCube != NULL)
 			{
 				indexStored.insert(std::pair<int, NodeLinkedList *>(idCube, node));
 				if (removedCube!= (index_node_t)0)
 					indexStored.erase(indexStored.find(removedCube));
 
 				queuePositions->moveToLastPosition(node);
-				queuePositions->addReference(node,thread->id);
+				queuePositions->addReference(node);
 
 				unsigned pos   = node->element;
+				cube 	= cacheData + pos*offsetCube;
 
-				cube->data 	= cacheData + pos*offsetCube;
-				cube->state 	= CACHED;
-				cube->cubeID 	= idCube;
-
-				if (cudaSuccess != cudaMemcpyAsync((void*) cube->data, (void*) pCube, offsetCube*sizeof(float), cudaMemcpyHostToDevice, thread->stream))
+				if (cudaSuccess != cudaMemcpyAsync((void*) cube, (void*) pCube, offsetCube*sizeof(float), cudaMemcpyHostToDevice, thread->stream))
 				{
 					std::cerr<<"Cache GPU_CPU_File: error copying to a device"<<std::endl;
 				}
@@ -149,9 +137,7 @@ visibleCube_t * cache_GPU_CPU_File::push_cube(visibleCube_t * cube, int octreeLe
 
 				callback_struct_t * callBackData = new callback_struct_t;
 				callBackData->cpuCache = cpuCache;
-				callBackData->octreeLevel = octreeLevel;
-				callBackData->thread = thread;
-				callBackData->cube = cube;
+				callBackData->idCube = idCube;
 
 				if ( cudaSuccess != cudaStreamAddCallback(thread->stream, unLockCPUCube, (void*)callBackData, 0))
         			{
@@ -169,9 +155,6 @@ visibleCube_t * cache_GPU_CPU_File::push_cube(visibleCube_t * cube, int octreeLe
 		}
 		else // there is no free slot
 		{
-			cube->state 	= NOCACHED;
-                        cube->cubeID 	= 0;
-			cube->data	= 0;
 #ifdef _PROFILING_M_
 	missN++;
 	gettimeofday(&endOP, NULL);
@@ -186,14 +169,11 @@ visibleCube_t * cache_GPU_CPU_File::push_cube(visibleCube_t * cube, int octreeLe
 
 	lock->unset();
 
-
 	return cube;
 }
 
-visibleCube_t * cache_GPU_CPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
+void cache_GPU_CPU_File::pop_cube(index_node_t idCube)
 {
-	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
-
 #ifdef _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
 #else
@@ -212,8 +192,7 @@ visibleCube_t * cache_GPU_CPU_File::pop_cube(visibleCube_t * cube, int octreeLev
 	if ( it != indexStored.end() ) // If exist remove reference
 	{
 		NodeLinkedList * node = it->second;
-		queuePositions->removeReference(node,thread->id);
-	//	cpuCache->pop_cube(cube, octreeLevel, thread);
+		queuePositions->removeReference(node);
 	}
 	else
 	{
@@ -226,6 +205,4 @@ visibleCube_t * cache_GPU_CPU_File::pop_cube(visibleCube_t * cube, int octreeLev
 #endif
 	
 	lock->unset();
-
-	return cube;
 }

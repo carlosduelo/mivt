@@ -60,10 +60,8 @@ cache_CPU_File::~cache_CPU_File()
 	#endif
 }
 
-float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
+float * cache_CPU_File::push_cube(index_node_t idCube)
 {
-	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
-
 #ifdef _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
 #else
@@ -88,7 +86,7 @@ float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadI
 		NodeLinkedList * node = it->second;
 
 		queuePositions->moveToLastPosition(node);
-		queuePositions->addReference(node,thread->id);
+		queuePositions->addReference(node);
 
 #ifdef _PROFILING_M_
 	hits++;
@@ -119,7 +117,7 @@ float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadI
 			unsigned pos   = node->element;
 
 			queuePositions->moveToLastPosition(node);
-			queuePositions->addReference(node,thread->id);
+			queuePositions->addReference(node);
 
 			fileManager->readCube(idCube, cacheData+ pos*offsetCube);
 
@@ -150,16 +148,16 @@ float * cache_CPU_File::push_cube(visibleCube_t * cube, int octreeLevel, threadI
 	}
 }
 
-void cache_CPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t * thread)
+void cache_CPU_File::pop_cube(index_node_t idCube)
 {
-	index_node_t idCube = cube->id >> (3*(octreeLevel-levelCube));
-
 #ifdef _BUNORDER_MAP_
 	boost::unordered_map<index_node_t, NodeLinkedList *>::iterator it;
 #else
 	std::map<index_node_t, NodeLinkedList *>::iterator it;
 #endif
+
 	lock->set();
+
 #ifdef _PROFILING_M_
 	struct timeval stOP, endOP;
 	gettimeofday(&stOP, NULL);
@@ -170,7 +168,7 @@ void cache_CPU_File::pop_cube(visibleCube_t * cube, int octreeLevel, threadID_t 
 	if ( it != indexStored.end() ) // If exist remove reference
 	{
 		NodeLinkedList * node = it->second;
-		queuePositions->removeReference(node,thread->id);
+		queuePositions->removeReference(node);
 	}
 	else
 	{
