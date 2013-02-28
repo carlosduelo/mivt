@@ -25,7 +25,7 @@ namespace eqMivt
 		    return _help;
 	}
 
-	EqMivt::EqMivt()
+	EqMivt::EqMivt(const eqMivt::InitParams& params) : _initParams(params)
 	{
 	}
 
@@ -53,7 +53,7 @@ namespace eqMivt
 		// 3. init config
 		lunchbox::Clock clock;
 
-		config->setInitData( _initData );
+//		config->setInitData( _initData );
 		if( !config->init( ))
 		{
 			LBWARN << "Error during initialization: " << config->getError()<< std::endl;
@@ -68,7 +68,7 @@ namespace eqMivt
 		LBLOG( LOG_STATS ) << "Config init took " << clock.getTimef() << " ms"<< std::endl;
 
 		// 4. run main loop
-		uint32_t maxFrames = _initData.getMaxFrames();
+		uint32_t maxFrames = _initParams.getMaxFrames();
 		int lastFrame = 0;
 
 		clock.reset();
@@ -132,6 +132,6 @@ namespace eqMivt
 			eq::Client::clientLoop();
 			LBINFO << "Configuration run successfully executed" << std::endl;
 		}
-		while( _initData.isResident( )); // execute at least one config run
+		while( _initParams.isResident( )); // execute at least one config run
 	}
 }

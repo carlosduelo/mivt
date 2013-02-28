@@ -1,0 +1,41 @@
+/*
+Author: Carlos Duelo Serrano 
+Company: Cesvima
+
+Notes:
+
+*/
+
+#include "initParams.h"
+
+namespace eqMivt
+{
+
+InitParams::InitParams() : _maxFrames( 0xffffffffu )
+{
+}
+
+InitParams::~InitParams()
+{
+}
+
+void InitParams::parseArguments(const int argc, const char ** argv)
+{
+}
+
+bool InitParams::checkParameters()
+{
+	//Check Parameters are OK!
+}
+
+void getInstanceData( co::DataOStream& os )
+{
+	os << _octreeiPathFile << _dataPathFile; 
+}
+
+void applyInstanceData( co::DataIStream& is )
+{
+	is >> _octreeiPathFile >> _dataPathFile;
+}
+
+}
