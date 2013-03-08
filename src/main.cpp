@@ -8,20 +8,17 @@ Notes:
 
 #include "mivt.h"
 
-#include "channel.h"
 #include "config.h"
 #include "error.h"
-#include "node.h"
-#include "pipe.h"
-#include "view.h"
-#include "window.h"
 
 class NodeFactory : public eq::NodeFactory
 {
 public:
+	virtual eq::Config*  createConfig( eq::ServerPtr parent )
+	{
+		//return new eqMivt::Config(parent);
+	}
 #if 0
-    virtual eq::Config*  createConfig( eq::ServerPtr parent )
-        { return new eqPly::Config( parent ); }
     virtual eq::Node*    createNode( eq::Config* parent )  
         { return new eqPly::Node( parent ); }
     virtual eq::Pipe*    createPipe( eq::Node* parent )
@@ -40,7 +37,7 @@ int main( const int argc, char** argv )
 	// 1. Equalizer initialization
 	NodeFactory nodeFactory;
 
-        EqMivt::initErrors();
+        eqMivt::initErrors();
 
 	if( !eq::init(argc, argv, &nodeFactory))
 	{
@@ -50,7 +47,7 @@ int main( const int argc, char** argv )
 
 	// 2. parse arguments
 	eqMivt::InitParams initParams;
-	initParams.parseArguments( argc, argv );
+	initParams.parseArguments( argc, (const char **) argv );
 
 	// 3. initialization of local client node
 	lunchbox::RefPtr< eqMivt::EqMivt > client = new eqMivt::EqMivt(initParams);

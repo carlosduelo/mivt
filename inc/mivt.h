@@ -9,7 +9,6 @@ Notes:
 #ifndef EQ_MIVT_H
 #define EQ_MIVT_H
 
-#include <eq/eq.h>
 #include "initParams.h"
 
 /** The Equalizer mivt implementation. */

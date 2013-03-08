@@ -6,14 +6,12 @@ Notes:
 
  */
 
-#ifndef EQ_CONFIG_H
-#define EQ_CONFIG_H
-
 // members
 #include "config.h"
 
 namespace eqMivt
 {
+
 Config::Config( eq::ServerPtr parent )	: eq::Config( parent )
 {
 }
@@ -27,13 +25,13 @@ bool Config::init()
 	registerObject( &_initParams);
 
 	// init config
-	if( !eq::Config::init( _initData.getID( )))
+	if( !eq::Config::init( _initParams.getID( )))
 	{
-		_deregisterData();
+		deregisterObject(&_initParams );
 		return false;
 	}
 
-	_setMessage( "Welcome to eqMivt" );
+	//_setMessage( "Welcome to eqMivt" );
 	return true;
 }
 
@@ -97,5 +95,4 @@ bool Config::_handleKeyEvent( const eq::KeyEvent& event )
 
 	}
 }
-
 }

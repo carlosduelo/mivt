@@ -28,12 +28,12 @@ bool InitParams::checkParameters()
 	//Check Parameters are OK!
 }
 
-void getInstanceData( co::DataOStream& os )
+void InitParams::getInstanceData( co::DataOStream& os )
 {
 	os << _octreeiPathFile << _dataPathFile; 
 }
 
-void applyInstanceData( co::DataIStream& is )
+void InitParams::applyInstanceData( co::DataIStream& is )
 {
 	is >> _octreeiPathFile >> _dataPathFile;
 }
