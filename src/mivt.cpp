@@ -53,7 +53,7 @@ namespace eqMivt
 		// 3. init config
 		lunchbox::Clock clock;
 
-//		config->setInitData( _initData );
+		config->setInitParams( _initParams );
 		if( !config->init( ))
 		{
 			LBWARN << "Error during initialization: " << config->getError()<< std::endl;
