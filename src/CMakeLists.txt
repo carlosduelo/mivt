@@ -9,8 +9,9 @@ set(MIVT_SOURCE	config.cpp
 		error.cpp
 		initParams.cpp
 		mivt.cpp
+		channel.cpp
 )
 
 
 add_executable(mivt ${MIVT_SOURCE} main.cpp) 
-target_link_libraries(mivt ${EQUALIZER_LIBRARIES}) 
+target_link_libraries(mivt ${EQUALIZER_LIBRARIES} GL) 

@@ -75,7 +75,7 @@ int EqMivt::run()
 
 	while( config->isRunning( ) && maxFrames-- )
 	{
-		//config->startFrame();
+		config->startFrame();
 		if( config->getError( ))
 			LBWARN << "Error during frame start: " << config->getError()<< std::endl;
 
@@ -132,6 +132,6 @@ void EqMivt::clientLoop()
 		eq::Client::clientLoop();
 		LBINFO << "Configuration run successfully executed" << std::endl;
 	}
-	while(true );//_initParams.isResident( )); // execute at least one config run
+	while(true);//_initParams.isResident( )); // execute at least one config run
 }
 }

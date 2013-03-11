@@ -26,6 +26,9 @@ class Config : public eq::Config
 		/** @sa eq::Config::exit. */
 		virtual bool exit();
 
+		/** @sa eq::Config::startFrame. */
+		virtual uint32_t startFrame();
+
 		void setInitParams( const eqMivt::InitParams& data ) { _initParams = data; }
 
 		const InitParams& getInitParams() const { return _initParams; }

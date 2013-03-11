@@ -10,13 +10,18 @@ Notes:
 
 #include "config.h"
 #include "error.h"
+#include "channel.h"
 
 class NodeFactory : public eq::NodeFactory
 {
 public:
 	virtual eq::Config*  createConfig( eq::ServerPtr parent )
 	{
-		//return new eqMivt::Config(parent);
+		return new eqMivt::Config(parent);
+	}
+	virtual eq::Channel* createChannel(eq::Window* parent)
+	{
+		return new eqMivt::Channel(parent);
 	}
 #if 0
     virtual eq::Node*    createNode( eq::Config* parent )  
@@ -25,8 +30,6 @@ public:
         { return new eqPly::Pipe( parent ); }
     virtual eq::Window*  createWindow( eq::Pipe* parent )
         { return new eqPly::Window( parent ); }
-    virtual eq::Channel* createChannel( eq::Window* parent )
-        { return new eqPly::Channel( parent ); }
     virtual eq::View* createView( eq::Layout* parent )
         { return new eqPly::View( parent ); }
 #endif

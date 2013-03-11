@@ -43,6 +43,15 @@ bool Config::exit()
 	return ret;
 }
 
+uint32_t Config::startFrame()
+{
+	//_updateData();
+	//const eq::uint128_t& version = _initParams.commit();
+
+	//_redraw = false;
+	return eq::Config::startFrame( 12);
+}
+
 bool Config::handleEvent( eq::EventICommand command )
 {
 #if 0
