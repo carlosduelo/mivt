@@ -7,6 +7,7 @@ Notes:
  */
 
 #include "channel.h"
+#include <stdlib.h>
 
 #include <GL/gl.h>
 #include <GL/glext.h>
@@ -31,16 +32,52 @@ Eso debería funcionarte sin problemas.
 
 */	
 
+
+
  	eq::PixelViewport  viewport = getPixelViewport();
 
+	eq::Pipe * pipe = getPipe();
 
-	std::cout<<".............>"<<viewport.x<<" "<<viewport.y<<std::endl;
+
+	float r = (float) rand()/(float)RAND_MAX;
+	float g = (float) rand()/(float)RAND_MAX;
+	float b = (float) rand()/(float)RAND_MAX;
+
+	if (getName()[7]=='0')
+	{
+		r = 1.0f;
+		g = 0.0f;
+		b = 0.0f;
+	}
+	if (getName()[7]=='1')
+	{
+		r = 0.0f;
+		g = 1.0f;
+		b = 0.0f;
+	}
+	if (getName()[7]=='2')
+	{
+		r = 0.0f;
+		g = 0.0f;
+		b = 1.0f;
+	}
+	if (getName()[7]=='3')
+	{
+		r = 0.5f;
+		g = 0.5f;
+		b = 0.5f;
+	}
+
+	std::cout<<getName()[7]<<" "<<" .............>"<<viewport.x<<" "<<viewport.y<<" "<<viewport.h<<" "<<viewport.w<<std::endl;
 
 
 	float * data = new float [3*viewport.h*viewport.w];
 	for(int i=0; i<3*viewport.w*viewport.h; i+=3)
-		data[i] = 1.0f;
-	
+	{
+		data[i]   = r;
+		data[i+1] = g;
+		data[i+2] = b;
+	}
 	applyBuffer();
 	applyViewport();
 	glEnable(GL_SCISSOR_TEST);

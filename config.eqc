@@ -1,0 +1,198 @@
+#Equalizer 1.2 ascii
+
+global
+{
+    EQ_WINDOW_IATTR_HINT_DOUBLEBUFFER                 OFF
+    EQ_WINDOW_IATTR_HINT_FULLSCREEN                   ON
+    EQ_WINDOW_IATTR_HINT_DRAWABLE                     pbuffer
+}
+server 
+{
+    connection
+    {
+        type          TCPIP
+        hostname      "estepar"
+        filename      "default"
+    }
+    config 
+    {
+        attributes
+        {
+            robustness AUTO
+            eye_base   0.05
+        }
+        appNode
+        {
+            name     "estepar"
+            host     "estepar"
+            connection
+            {
+                type          TCPIP
+                hostname      "estepar"
+                filename      "default"
+            }
+            pipe
+            {
+                name     "pipe0n0"
+                
+                window
+                {
+                    name     "window0"
+                    viewport [ 480 100 0 0 ]
+                    viewport [ 480 100 960 600 ]
+                    
+                    attributes
+                    {
+                        hint_doublebuffer  ON
+                        hint_fullscreen    OFF
+                        hint_drawable      window
+                    }
+                    
+                    channel
+                    {
+                        name     "channel0"
+                        viewport [ 0 0 1 1 ]
+                    }
+                }
+            }
+            pipe
+            {
+                name     "pipe1n0"
+                
+                window
+                {
+                    name     "window1"
+                    viewport [ 0 0 1 1 ]
+                    channel
+                    {
+                        name     "channel1"
+                        viewport [ 0 0 1 1 ]
+                    }
+                }
+            }
+            pipe
+            {
+                name     "pipe0n1"
+                
+                window
+                {
+                    name     "window2"
+                    viewport [ 0 0 1 1 ]
+                    channel
+                    {
+                        name     "channel2"
+                        viewport [ 0 0 1 1 ]
+                    }
+                }
+            }
+            pipe
+            {
+                name     "pipe1n1"
+                
+                window
+                {
+                    name     "window3"
+                    viewport [ 0 0 1 1 ]
+                    channel
+                    {
+                        name     "channel3"
+                        viewport [ 0 0 1 1 ]
+                    }
+                }
+            }
+        }
+        
+        observer
+        {
+            eye_left       [     -0.025          0          0 ]
+            eye_cyclop     [          0          0          0 ]
+            eye_right      [      0.025          0          0 ]
+            focus_distance 1
+            focus_mode     fixed
+        }
+
+        layout
+        {
+            view
+            {
+                observer ""
+                wall
+                {
+                    bottom_left  [   -0.80000   -0.50000   -1.00000 ]
+                    bottom_right [    0.80000   -0.50000   -1.00000 ]
+                    top_left     [   -0.80000    0.50000   -1.00000 ]
+                }
+                
+            }
+        }
+        canvas
+        {
+            layout   ""
+            wall
+            {
+                bottom_left  [   -0.80000   -0.50000   -1.00000 ]
+                bottom_right [    0.80000   -0.50000   -1.00000 ]
+                top_left     [   -0.80000    0.50000   -1.00000 ]
+            }
+            
+            segment
+            {
+                channel  "channel0"
+            }
+        }
+            compound
+            {
+                channel  ( canvas 0  segment 0   layout   0  view 0 )
+                load_equalizer
+                {
+                    mode    2D
+                }
+                
+                compound
+                {
+                    channel  "channel0"
+                    viewport [ 0.000000 0.000000 1.000000 0.250000 ]
+                }
+                compound
+                {
+                    channel  "channel1"
+                    viewport [ 0.000000 0.250000 1.000000 0.250000 ]
+                    outputframe
+                    {
+                        name     "frame.channel1"
+                    }
+                }
+                compound
+                {
+                    channel  "channel2"
+                    viewport [ 0.000000 0.500000 1.000000 0.250000 ]
+                    outputframe
+                    {
+                        name     "frame.channel2"
+                    }
+                }
+                compound
+                {
+                    channel  "channel3"
+                    viewport [ 0.000000 0.750000 1.000000 0.250000 ]
+                    outputframe
+                    {
+                        name     "frame.channel3"
+                    }
+                }
+                inputframe
+                {
+                    name     "frame.channel1"
+                }
+                inputframe
+                {
+                    name     "frame.channel2"
+                }
+                inputframe
+                {
+                    name     "frame.channel3"
+                }
+            }
+    }
+}
+
