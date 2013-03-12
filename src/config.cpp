@@ -42,7 +42,6 @@ bool Config::exit()
 	// retain model & distributors for possible other config runs, dtor deletes
 	return ret;
 }
-
 uint32_t Config::startFrame()
 {
 	//_updateData();
@@ -52,6 +51,7 @@ uint32_t Config::startFrame()
 	return eq::Config::startFrame( 12);
 }
 
+#if 0
 bool Config::handleEvent( eq::EventICommand command )
 {
 #if 0
@@ -104,4 +104,5 @@ bool Config::_handleKeyEvent( const eq::KeyEvent& event )
 
 	}
 }
+#endif
 }
