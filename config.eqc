@@ -11,7 +11,7 @@ server
     connection
     {
         type          TCPIP
-        hostname      "estepar"
+        hostname      "localhost"
         filename      "default"
     }
     config 
@@ -23,12 +23,12 @@ server
         }
         appNode
         {
-            name     "estepar"
-            host     "estepar"
+            name     "localhost"
+            host     "localhost"
             connection
             {
                 type          TCPIP
-                hostname      "estepar"
+                hostname      "localhost"
                 filename      "default"
             }
             pipe
@@ -38,8 +38,7 @@ server
                 window
                 {
                     name     "window0"
-                    viewport [ 480 100 0 0 ]
-                    viewport [ 480 100 960 600 ]
+                    viewport [ 0 0 1 1 ]
                     
                     attributes
                     {
@@ -100,6 +99,21 @@ server
                     }
                 }
             }
+            pipe
+            {
+                name     "pipe1n2"
+                
+                window
+                {
+                    name     "window4"
+                    viewport [ 0 0 1 1 ]
+                    channel
+                    {
+                        name     "channel4"
+                        viewport [ 0 0 1 1 ]
+                    }
+                }
+            }
         }
         
         observer
@@ -118,9 +132,6 @@ server
                 observer ""
                 wall
                 {
-                    bottom_left  [   -0.80000   -0.50000   -1.00000 ]
-                    bottom_right [    0.80000   -0.50000   -1.00000 ]
-                    top_left     [   -0.80000    0.50000   -1.00000 ]
                 }
                 
             }
@@ -143,20 +154,14 @@ server
             compound
             {
                 channel  ( canvas 0  segment 0   layout   0  view 0 )
-                load_equalizer
+
+                #tile_equalizer
+		load_equalizer
                 {
-                    mode    2D
-                }
-                
-                compound
-                {
-                    channel  "channel0"
-                    viewport [ 0.000000 0.000000 1.000000 0.250000 ]
                 }
                 compound
                 {
                     channel  "channel1"
-                    viewport [ 0.000000 0.250000 1.000000 0.250000 ]
                     outputframe
                     {
                         name     "frame.channel1"
@@ -165,7 +170,6 @@ server
                 compound
                 {
                     channel  "channel2"
-                    viewport [ 0.000000 0.500000 1.000000 0.250000 ]
                     outputframe
                     {
                         name     "frame.channel2"
@@ -174,7 +178,6 @@ server
                 compound
                 {
                     channel  "channel3"
-                    viewport [ 0.000000 0.750000 1.000000 0.250000 ]
                     outputframe
                     {
                         name     "frame.channel3"

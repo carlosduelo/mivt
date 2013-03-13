@@ -11,6 +11,7 @@ Notes:
 
 // members
 #include "initParams.h"
+#include "frameData.h"
 
 namespace eqMivt
 {
@@ -36,12 +37,16 @@ class Config : public eq::Config
 		/** @sa eq::Config::handleEvent */
 		//virtual bool handleEvent( eq::EventICommand command );
 
+		/** Map per-config data to the local node process */
+	        bool loadData( const eq::uint128_t& initParamsID );
+
 	protected:
 		virtual ~Config();
 
 	private:
 
 		eqMivt::InitParams 	_initParams;
+		eqMivt::FrameData	_frameData;
 
 		//bool _handleKeyEvent( const eq::KeyEvent& event );
 };

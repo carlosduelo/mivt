@@ -11,6 +11,8 @@ Notes:
 #include "config.h"
 #include "error.h"
 #include "channel.h"
+#include "node.h"
+#include "pipe.h"
 
 class NodeFactory : public eq::NodeFactory
 {
@@ -23,15 +25,19 @@ public:
 	{
 		return new eqMivt::Channel(parent);
 	}
+	virtual eq::Node* createNode(eq::Config* parent)
+	{
+		return new eqMivt::Node(parent);
+	}
+	virtual eq::Pipe* createPipe(eq::Node* parent)
+	{
+		return new eqMivt::Pipe(parent);
+	}
 #if 0
-    virtual eq::Node*    createNode( eq::Config* parent )  
-        { return new eqPly::Node( parent ); }
-    virtual eq::Pipe*    createPipe( eq::Node* parent )
-        { return new eqPly::Pipe( parent ); }
     virtual eq::Window*  createWindow( eq::Pipe* parent )
-        { return new eqPly::Window( parent ); }
+        { return new eqMivt::Window( parent ); }
     virtual eq::View* createView( eq::Layout* parent )
-        { return new eqPly::View( parent ); }
+        { return new eqMivt::View( parent ); }
 #endif
 };
 

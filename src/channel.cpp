@@ -67,8 +67,14 @@ Eso debería funcionarte sin problemas.
 		g = 0.5f;
 		b = 0.5f;
 	}
+	if (getName()[7]=='4')
+	{
+		r = 0.2f;
+		g = 0.2f;
+		b = 0.5f;
+	}
 
-	std::cout<<getName()[7]<<" "<<" .............>"<<viewport.x<<" "<<viewport.y<<" "<<viewport.h<<" "<<viewport.w<<std::endl;
+	std::cout<<getName()<<" "<<" .............>"<<viewport.x<<" "<<viewport.y<<" "<<viewport.h<<" "<<viewport.w<<std::endl;
 
 
 	float * data = new float [3*viewport.h*viewport.w];
@@ -78,9 +84,9 @@ Eso debería funcionarte sin problemas.
 		data[i+1] = g;
 		data[i+2] = b;
 	}
-	applyBuffer();
-	applyViewport();
-	glEnable(GL_SCISSOR_TEST);
+	//glEnable(GL_SCISSOR_TEST);
+	//applyBuffer();
+	//applyViewport();
 	glDrawPixels(viewport.w, viewport.h, GL_RGB, GL_FLOAT, data);
 
 	delete[] data;

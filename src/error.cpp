@@ -22,6 +22,7 @@ struct ErrorData
 ErrorData _errors[] = 
 {
 	{ ERROR_EQ_MIVT_FAILED, "mivt error" },
+	{ ERROR_EQ_MIVT_FAILED_LOADING_DATA, "mivt error loading model data" },
 	{ 0, "" } // last!
 };
 }

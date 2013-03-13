@@ -10,6 +10,9 @@ set(MIVT_SOURCE	config.cpp
 		initParams.cpp
 		mivt.cpp
 		channel.cpp
+		node.cpp
+		pipe.cpp
+		frameData.cpp
 )
 
 

@@ -22,6 +22,8 @@ class InitParams : public co::Object
 
 		uint32_t    _maxFrames;
 
+		eq::uint128_t    _frameDataID;
+
 	public:
 		InitParams();
 
@@ -31,12 +33,15 @@ class InitParams : public co::Object
 
 		bool checkParameters();
 
+		eq::uint128_t getFrameDataID() const  		{ return _frameDataID; }
+		void setFrameDataID( const eq::uint128_t& id ) 	{ _frameDataID = id; }
+
 		uint32_t getMaxFrames()   const { return _maxFrames; }
 
 	protected:
-	virtual void getInstanceData( co::DataOStream& os );
+		virtual void getInstanceData( co::DataOStream& os );
 
-	virtual void applyInstanceData( co::DataIStream& is );
+		virtual void applyInstanceData( co::DataIStream& is );
 };
 }
 #endif // EQ_MIVT_INITPARMAS

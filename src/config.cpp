@@ -22,12 +22,18 @@ Config::~Config()
 
 bool Config::init()
 {
+	// Init frame data and register
+	registerObject( &_frameData );
+
+	// Add info to initParams and register
+	_initParams.setFrameDataID( _frameData.getID( ));
 	registerObject( &_initParams);
 
 	// init config
 	if( !eq::Config::init( _initParams.getID( )))
 	{
-		deregisterObject(&_initParams );
+		deregisterObject(&_initParams);
+		deregisterObject(&_frameData);
 		return false;
 	}
 
@@ -38,6 +44,8 @@ bool Config::init()
 bool Config::exit()
 {
 	const bool ret = eq::Config::exit();
+	deregisterObject(&_initParams);
+	deregisterObject(&_frameData);
 
 	// retain model & distributors for possible other config runs, dtor deletes
 	return ret;
@@ -45,11 +53,31 @@ bool Config::exit()
 uint32_t Config::startFrame()
 {
 	//_updateData();
-	//const eq::uint128_t& version = _initParams.commit();
+	const eq::uint128_t& version = _frameData.commit();
 
 	//_redraw = false;
-	return eq::Config::startFrame( 12);
+	return eq::Config::startFrame(version);
 }
+
+/** Map per-config data to the local node process */
+bool Config::loadData( const eq::uint128_t& initParamsID )
+{
+	if( !_initParams.isAttached( ))
+	{
+		const uint32_t request = mapObjectNB( &_initParams, initParamsID, co::VERSION_OLDEST, getApplicationNode( ));
+
+		if( !mapObjectSync( request ))
+			return false;
+		unmapObject( &_initParams ); // data was retrieved, unmap immediately
+	}
+	else // appNode, _initData is registered already
+	{
+		LBASSERT( _initParams.getID() == initParamsID );
+	}
+
+	return true;
+}
+
 
 #if 0
 bool Config::handleEvent( eq::EventICommand command )
