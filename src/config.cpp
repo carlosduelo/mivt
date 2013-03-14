@@ -50,6 +50,7 @@ bool Config::exit()
 	// retain model & distributors for possible other config runs, dtor deletes
 	return ret;
 }
+
 uint32_t Config::startFrame()
 {
 	//_updateData();
@@ -75,7 +76,9 @@ bool Config::loadData( const eq::uint128_t& initParamsID )
 		LBASSERT( _initParams.getID() == initParamsID );
 	}
 
-	return true;
+
+	// Check parameters are reached from each node
+	return _initParams.checkParameters();
 }
 
 

@@ -1,0 +1,5 @@
+
+# LCLAP
+set(TCLAP_INDCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tclap/include)
+message(STATUS ${TCLAP_INDCLUDE_DIR} " INCLUDED")
+include_directories(${TCLAP_INDCLUDE_DIR})

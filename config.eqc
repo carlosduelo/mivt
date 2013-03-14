@@ -183,6 +183,14 @@ server
                         name     "frame.channel3"
                     }
                 }
+                compound
+                {
+                    channel  "channel4"
+                    outputframe
+                    {
+                        name     "frame.channel4"
+                    }
+                }
                 inputframe
                 {
                     name     "frame.channel1"
@@ -194,6 +202,10 @@ server
                 inputframe
                 {
                     name     "frame.channel3"
+                }
+                inputframe
+                {
+                    name     "frame.channel4"
                 }
             }
     }

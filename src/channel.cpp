@@ -23,21 +23,10 @@ Channel::Channel(eq::Window* parent) : eq::Channel(parent)
 void Channel::frameDraw( const eq::uint128_t& frameID )
 {
 	eq::Channel::frameDraw( frameID ); // Setup OpenGL state
-/*
-	//return pipe->getFrameData();
-Hola Carlos,
-Dentro de Channel::frameDraw puedes invocar getPixelViewport, que te devuelve un eq::PixelViewport con la esquina inferior izquierda del viewport, el ancho y el alto en píxels.
-Aparte, para no tener que llamar a glDrawBuffer ni glViewport ni glScissor por tu cuenta, puedes invocar applyBuffer() y applyViewport() (GL_SCISSOR_TEST sí hay que habilitarlo a mano) y a continuación hacer glDrawPixels.
-Eso debería funcionarte sin problemas. 
-
-*/	
-
-
 
  	eq::PixelViewport  viewport = getPixelViewport();
 
 	eq::Pipe * pipe = getPipe();
-
 
 	float r = (float) rand()/(float)RAND_MAX;
 	float g = (float) rand()/(float)RAND_MAX;

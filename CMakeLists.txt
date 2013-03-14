@@ -8,8 +8,36 @@ project (mivt)
 
 # Equalizer
 find_package(Equalizer 1.5.0 REQUIRED)
-#if (EQUALIZER_FOUND)
-include_directories(${EQUALIZER_INCLUDE_DIRS})
+if (EQUALIZER_FOUND)
+	include_directories(${EQUALIZER_INCLUDE_DIRS})
+else()
+	message(ERROR "EQUALIZER NOT FOUND")
+endif()
+
+# BOOST 
+set(Boost_USE_STATIC_LIBS        ON)
+set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME    OFF)
+find_package(Boost 1.36.0 COMPONENTS system filesystem)
+if (Boost_FOUND)
+	include_directories(${Boost_INCLUDE_DIRS})
+else()
+	message(ERROR "Boost NOT FOUND")
+endif()
+
+# HDF5
+find_package(HDF5 REQUIRED)
+if (HDF5_FOUND)
+	include_directories(HDF5_INCLUDE_DIRS)
+else()
+	message(ERROR "HDF5 NOT FOUND")
+endif()
+
+# TOOLS
+#include_directories(${TCLAP_INDCLUDE_DIR})
+#message(STATUS ${TCLAP_INDCLUDE_DIR})
+include_directories(${mivt_SOURCE_DIR}/tools/tclap/include)
+message(STATUS ${mivt_SOURCE_DIR}/tools/tclap/include)
 
 
 # MIVT

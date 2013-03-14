@@ -1,0 +1,38 @@
+/*
+Author: Carlos Duelo Serrano 
+Company: Cesvima
+
+Notes:
+
+ */
+
+#ifndef EQ_MIVT_HDF5_FILE_H
+#define EQ_MIVT_HDF5_FILE_H
+
+#include <FileManager.h>
+
+#include <hdf5.h>
+
+namespace eqMivt
+{
+class hdf5File : public FileManager
+{
+	private:
+		// HDF5 stuff
+		hid_t           file_id;
+		hid_t           dataset_id;
+		hid_t           spaceid;
+		int             ndim;
+		hsize_t         dims[3];
+
+	public:
+
+		hdf5File(const char * file_name, const char * dataset_name, int p_levelCube, int p_nLevels, vmml::vector<3, int> p_cubeDim, vmml::vector<3, int> p_cubeInc);
+
+		~hdf5File();
+
+		void readCube(index_node_t index, float * cube);
+};
+}
+
+#endif /* EQ_MIVT_HDF5_FILE */

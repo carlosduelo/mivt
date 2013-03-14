@@ -62,8 +62,12 @@ int EqMivt::run()
 		return EXIT_FAILURE;
 	}
 	if( config->getError( ))
+	{
 		LBWARN << "Error during initialization: " << config->getError()<< std::endl;
-
+		server->releaseConfig( config );
+		disconnectServer( server );
+		return EXIT_FAILURE;
+	}
 
 	LBLOG( LOG_STATS ) << "Config init took " << clock.getTimef() << " ms"<< std::endl;
 
