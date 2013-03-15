@@ -17,7 +17,8 @@ namespace eqMivt
 	enum Error
 	{
 		ERROR_EQ_MIVT_FAILED = eq::ERROR_CUSTOM,
-		ERROR_EQ_MIVT_FAILED_LOADING_DATA = eq::ERROR_CUSTOM
+		ERROR_EQ_MIVT_FAILED_LOADING_DATA = eq::ERROR_CUSTOM,
+		ERROR_EQ_MIVT_FAILED_LOADING_OCTREE_DATA = eq::ERROR_CUSTOM
 	};
 
 	/** Set up mivt-specific error codes. */

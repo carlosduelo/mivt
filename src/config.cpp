@@ -51,15 +51,6 @@ bool Config::exit()
 	return ret;
 }
 
-uint32_t Config::startFrame()
-{
-	//_updateData();
-	const eq::uint128_t& version = _frameData.commit();
-
-	//_redraw = false;
-	return eq::Config::startFrame(version);
-}
-
 /** Map per-config data to the local node process */
 bool Config::loadData( const eq::uint128_t& initParamsID )
 {
@@ -76,10 +67,32 @@ bool Config::loadData( const eq::uint128_t& initParamsID )
 		LBASSERT( _initParams.getID() == initParamsID );
 	}
 
-
 	// Check parameters are reached from each node
-	return _initParams.checkParameters();
+	if (!_initParams.checkParameters())
+	{
+		LBERROR<<"Error checking parameters"<<std::endl;
+		return false;
+	}
+
+	// Reading octree file
+	if (!_octreeContainer.readOctreeFile(_initParams.getOctreeFile(), _initParams.getMaxLevel()))
+	{
+		LBERROR<<"Error checking parameters"<<std::endl;
+		return false;
+	}
+
+	return true; 
 }
+
+uint32_t Config::startFrame()
+{
+	//_updateData();
+	const eq::uint128_t& version = _frameData.commit();
+
+	//_redraw = false;
+	return eq::Config::startFrame(version);
+}
+
 
 
 #if 0

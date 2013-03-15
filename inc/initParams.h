@@ -16,13 +16,15 @@ class InitParams : public co::Object
 {
 	private:
 
-		std::string _octreeiPathFile;
+		// Octree Parameters
+		std::string 	_octreePathFile;
+		int		_maxLevel;
 
-		std::string _dataPathFile;
+		std::string 	_dataPathFile;
 
-		uint32_t    _maxFrames;
+		uint32_t    	_maxFrames;
 
-		eq::uint128_t    _frameDataID;
+		eq::uint128_t   _frameDataID;
 
 	public:
 		InitParams();
@@ -35,6 +37,12 @@ class InitParams : public co::Object
 
 		eq::uint128_t getFrameDataID() const  		{ return _frameDataID; }
 		void setFrameDataID( const eq::uint128_t& id ) 	{ _frameDataID = id; }
+
+		std::string 	getDataFile() { return _dataPathFile; }
+
+		std::string 	getOctreeFile() { return _octreePathFile; }
+
+		int 		getMaxLevel() { return _maxLevel; } 
 
 		uint32_t getMaxFrames()   const { return _maxFrames; }
 

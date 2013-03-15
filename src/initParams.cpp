@@ -16,14 +16,14 @@ namespace eqMivt
 {
 
 InitParams::InitParams() : 	_maxFrames( 0xffffffffu ),
-				_octreeiPathFile( "" ),
-				_dataPathFile( "")
+				_frameDataID()
 				
 {
 }
 
 InitParams::~InitParams()
 {
+	setFrameDataID(0);
 }
 
 void InitParams::parseArguments(const int argc, const char ** argv)
@@ -32,22 +32,25 @@ void InitParams::parseArguments(const int argc, const char ** argv)
 	TCLAP::CmdLine command( desc, ' ', eq::Version::getString( ));
 
 	TCLAP::ValueArg<std::string> octree_file( "o", "octree-file", "File containing octree", true, "", "string", command );
-	TCLAP::ValueArg<std::string> volumee_file( "i", "volume-file", "File containing volume", true, "", "string", command );
+	TCLAP::ValueArg<std::string> volume_file( "i", "volume-file", "File containing volume", true, "", "string", command );
+
+	TCLAP::ValueArg<int> maxLevel_Octree( "m", "max-level", "Max Level Ocotree", true, 0, "int", command );
 
 	command.parse(argc, argv);
 
-	LBINFO << " Parameters mivt: "<<octree_file.getValue()<< " " << volumee_file.getValue()<<std::endl;
+	LBINFO << " Parameters mivt: "<<octree_file.getValue()<<" max level "<<maxLevel_Octree.getValue() <<" " << volume_file.getValue()<<std::endl;
 
-	_octreeiPathFile 	= octree_file.getValue();
-	_dataPathFile		= volumee_file.getValue();
+	_octreePathFile 	= octree_file.getValue();
+	_dataPathFile		= volume_file.getValue();
+	_maxLevel		= maxLevel_Octree.getValue(); 
 }
 
 bool InitParams::checkParameters()
 {
 	//Check Parameters are OK!
-	if (!boost::filesystem::exists(_octreeiPathFile))
+	if (!boost::filesystem::exists(_octreePathFile))
 	{
-		LBERROR << "Cannot open "<<_octreeiPathFile<< " file."<< std::endl;
+		LBERROR << "Cannot open "<<_octreePathFile<< " file."<< std::endl;
 		return false;
 	}
 	if (!boost::filesystem::exists(_dataPathFile))
@@ -61,12 +64,12 @@ bool InitParams::checkParameters()
 
 void InitParams::getInstanceData( co::DataOStream& os )
 {
-	os << _octreeiPathFile << _dataPathFile; 
+	os << _frameDataID; 
 }
 
 void InitParams::applyInstanceData( co::DataIStream& is )
 {
-	is >> _octreeiPathFile >> _dataPathFile;
+	is >> _frameDataID;
 }
 
 }

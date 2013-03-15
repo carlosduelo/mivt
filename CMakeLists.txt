@@ -33,11 +33,20 @@ else()
 	message(ERROR "HDF5 NOT FOUND")
 endif()
 
+# CUDA
+find_package(CUDA 5.0 REQUIRED)
+if (CUDA_FOUND)
+	include_directories(CUDA_INCLUDE_DIRS)
+	cuda_include_directories(${mivt_SOURCE_DIR}/inc)
+else()
+	message(ERROR "CUDA NOT FOUND")
+endif()
+
+
 # TOOLS
 #include_directories(${TCLAP_INDCLUDE_DIR})
 #message(STATUS ${TCLAP_INDCLUDE_DIR})
 include_directories(${mivt_SOURCE_DIR}/tools/tclap/include)
-message(STATUS ${mivt_SOURCE_DIR}/tools/tclap/include)
 
 
 # MIVT

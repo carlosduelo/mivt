@@ -12,6 +12,7 @@ Notes:
 // members
 #include "initParams.h"
 #include "frameData.h"
+#include "octreeContainer.h"
 
 namespace eqMivt
 {
@@ -47,6 +48,8 @@ class Config : public eq::Config
 
 		eqMivt::InitParams 	_initParams;
 		eqMivt::FrameData	_frameData;
+
+		OctreeContainer 	_octreeContainer;
 
 		//bool _handleKeyEvent( const eq::KeyEvent& event );
 };

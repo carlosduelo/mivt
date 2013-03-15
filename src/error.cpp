@@ -23,6 +23,7 @@ ErrorData _errors[] =
 {
 	{ ERROR_EQ_MIVT_FAILED, "mivt error" },
 	{ ERROR_EQ_MIVT_FAILED_LOADING_DATA, "mivt error loading model data" },
+	{ ERROR_EQ_MIVT_FAILED_LOADING_OCTREE_DATA, "mivt error loading octree file" },
 	{ 0, "" } // last!
 };
 }
