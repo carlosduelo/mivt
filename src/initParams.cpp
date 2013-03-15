@@ -28,21 +28,32 @@ InitParams::~InitParams()
 
 void InitParams::parseArguments(const int argc, const char ** argv)
 {
-	const std::string& desc = EqMivt::getHelp();
-	TCLAP::CmdLine command( desc, ' ', eq::Version::getString( ));
+	try
+	{
+		const std::string& desc = EqMivt::getHelp();
+		TCLAP::CmdLine command( desc, ' ', eq::Version::getString( ));
 
-	TCLAP::ValueArg<std::string> octree_file( "o", "octree-file", "File containing octree", true, "", "string", command );
-	TCLAP::ValueArg<std::string> volume_file( "i", "volume-file", "File containing volume", true, "", "string", command );
+		TCLAP::ValueArg<std::string> octree_file( "o", "octree-file", "File containing octree", true, "", "string", command );
+		TCLAP::ValueArg<std::string> volume_file( "i", "volume-file", "File containing volume", true, "", "string", command );
 
-	TCLAP::ValueArg<int> maxLevel_Octree( "m", "max-level", "Max Level Ocotree", true, 0, "int", command );
+		TCLAP::ValueArg<int> maxLevel_Octree( "m", "max-level", "Max Level Ocotree", true, 0, "int", command );
 
-	command.parse(argc, argv);
+		TCLAP::UnlabeledMultiArg< std::string > ignoreArgs( "ignore", "Ignored unlabeled arguments", false, "any", command );
 
-	LBINFO << " Parameters mivt: "<<octree_file.getValue()<<" max level "<<maxLevel_Octree.getValue() <<" " << volume_file.getValue()<<std::endl;
+		command.parse(argc, argv);
 
-	_octreePathFile 	= octree_file.getValue();
-	_dataPathFile		= volume_file.getValue();
-	_maxLevel		= maxLevel_Octree.getValue(); 
+		LBINFO << " Parameters mivt: "<<octree_file.getValue()<<" max level "<<maxLevel_Octree.getValue() <<" " << volume_file.getValue()<<std::endl;
+
+		_octreePathFile 	= octree_file.getValue();
+		_dataPathFile		= volume_file.getValue();
+		_maxLevel		= maxLevel_Octree.getValue(); 
+	}
+	catch (const TCLAP::ArgException& exception)
+	{
+		LBERROR << "Command line parse error: " << exception.error()
+			<< " for argument " << exception.argId() << std::endl;
+		::exit( EXIT_FAILURE );
+	}
 }
 
 bool InitParams::checkParameters()
