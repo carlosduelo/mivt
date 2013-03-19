@@ -9,6 +9,8 @@ Notes:
 // members
 #include "config.h"
 
+#include <math.h>
+
 namespace eqMivt
 {
 
@@ -77,9 +79,20 @@ bool Config::loadData( const eq::uint128_t& initParamsID )
 	// Reading octree file
 	if (!_octreeContainer.readOctreeFile(_initParams.getOctreeFile(), _initParams.getMaxLevel()))
 	{
-		LBERROR<<"Error checking parameters"<<std::endl;
+		LBERROR<<"Error creating octree container"<<std::endl;
 		return false;
 	}
+
+	// Creating CPU Cache
+	vmml::vector<3, int> cubeDim;
+	int cDim = exp2(_octreeContainer.getnLevels()-_initParams.getCubeLevel());
+	cubeDim.set(cDim, cDim, cDim);
+	if (!_cacheCPU.init(_initParams.getTypeFile(), _initParams.getDataFile(), _initParams.getMaxElements_CPU(), cubeDim, _initParams.getCubeInc(), _initParams.getCubeLevel(), _octreeContainer.getnLevels())) 
+	{
+		LBERROR<<"Error creating cpu cache"<<std::endl;
+		return false;
+	}
+
 
 	return true; 
 }

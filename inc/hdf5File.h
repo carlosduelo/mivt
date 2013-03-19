@@ -27,11 +27,15 @@ class hdf5File : public FileManager
 
 	public:
 
-		hdf5File(std::string file_name, std::string dataset_name, int p_levelCube, int p_nLevels, vmml::vector<3, int> p_cubeDim, vmml::vector<3, int> p_cubeInc);
+		hdf5File()
+		{
+		}
+
+		virtual bool init(std::vector<std::string> file_params, int p_levelCube, int p_nLevels, vmml::vector<3, int> p_cubeDim, vmml::vector<3, int> p_cubeInc);
 
 		~hdf5File();
 
-		void readCube(index_node_t index, float * cube);
+		virtual void readCube(index_node_t index, float * cube);
 };
 }
 

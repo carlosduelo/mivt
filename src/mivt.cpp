@@ -17,7 +17,8 @@ namespace
 {
 	static const std::string _help(
 	std::string( "mivt - Equalizer massive interactive visualization tool\n" ) +
-	std::string( "Coming soon.....\n" ));
+	std::string( "Coming soon.....\n" ) 
+	);
 }
 
 const std::string& EqMivt::getHelp()

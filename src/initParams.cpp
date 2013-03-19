@@ -11,6 +11,9 @@ Notes:
 
 #include <tclap/CmdLine.h>
 #include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+#include <boost/tokenizer.hpp>
+#include <stdlib.h>
 
 namespace eqMivt
 {
@@ -26,27 +29,72 @@ InitParams::~InitParams()
 	setFrameDataID(0);
 }
 
-void InitParams::parseArguments(const int argc, const char ** argv)
+bool InitParams::parseArguments(const int argc, const char ** argv)
 {
 	try
 	{
 		const std::string& desc = EqMivt::getHelp();
 		TCLAP::CmdLine command( desc, ' ', eq::Version::getString( ));
 
-		TCLAP::ValueArg<std::string> octree_file( "o", "octree-file", "File containing octree", true, "", "string", command );
-		TCLAP::ValueArg<std::string> volume_file( "i", "volume-file", "File containing volume", true, "", "string", command );
+		TCLAP::ValueArg<std::string> octree_file( "o", "octree-file", "File containing octree: path:max_level", true, "", "string", command );
+		TCLAP::ValueArg<std::string> volume_file( "d", "data", "File containing volume type:type_file:file_path:options:level_cube", true, "", "string", command );
 
-		TCLAP::ValueArg<int> maxLevel_Octree( "m", "max-level", "Max Level Ocotree", true, 0, "int", command );
-
+		TCLAP::ValueArg<int> cacheCPU( "c", "cpu-max-elements", "File containing volume type:type_file:file_path:options:level_cube", true, 1, "string", command );
+		
 		TCLAP::UnlabeledMultiArg< std::string > ignoreArgs( "ignore", "Ignored unlabeled arguments", false, "any", command );
 
 		command.parse(argc, argv);
 
-		LBINFO << " Parameters mivt: "<<octree_file.getValue()<<" max level "<<maxLevel_Octree.getValue() <<" " << volume_file.getValue()<<std::endl;
+		boost::char_separator<char> sep(":");
 
-		_octreePathFile 	= octree_file.getValue();
-		_dataPathFile		= volume_file.getValue();
-		_maxLevel		= maxLevel_Octree.getValue(); 
+		// Octree parameters
+		boost::tokenizer< boost::char_separator<char> > tokensO(octree_file.getValue(), sep);
+		int i = 0;
+		BOOST_FOREACH (const std::string& t, tokensO)
+		{
+			if (i==0) 
+			{
+				_octreePathFile = t;
+			}
+			else if (i==1)
+			{
+				_maxLevel = atoi(t.c_str());
+			}	
+			i++;
+		}
+		if (i > 2)
+			return false;
+
+		// Data parameters
+		_cubeInc = 2;
+		boost::tokenizer< boost::char_separator<char> > tokensD(volume_file.getValue(), sep);
+		int size = 0;
+		BOOST_FOREACH (const std::string& t, tokensD)
+			size++;
+		i = 0;
+		BOOST_FOREACH (const std::string& t, tokensD)
+		{
+			if (i==0)
+				_type_file = t;
+			else if (i == (size-1))
+				_cubeLevel = atoi(t.c_str());
+			else
+				_dataPathFile.push_back(t);
+
+			i++;
+		}
+
+		if (_maxLevel < _cubeLevel)
+		{
+			LBERROR<<"Cube level have to be <= max level octree"<<std::endl;
+			return false;
+		}
+
+		// Cache cpu parameters
+		_maxElements_CPU = cacheCPU.getValue();
+
+		return true;
+
 	}
 	catch (const TCLAP::ArgException& exception)
 	{
@@ -64,12 +112,11 @@ bool InitParams::checkParameters()
 		LBERROR << "Cannot open "<<_octreePathFile<< " file."<< std::endl;
 		return false;
 	}
-	if (!boost::filesystem::exists(_dataPathFile))
+	if (!boost::filesystem::exists(_dataPathFile[0]))
 	{
-		LBERROR << "Cannot open "<<_dataPathFile<< " file."<< std::endl;
+		LBERROR << "Cannot open "<<_dataPathFile[0]<< " file."<< std::endl;
 		return false;
 	}
-
 	return true;	
 }
 

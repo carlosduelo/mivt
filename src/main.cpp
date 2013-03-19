@@ -56,7 +56,11 @@ int main( const int argc, char** argv )
 
 	// 2. parse arguments
 	eqMivt::InitParams initParams;
-	initParams.parseArguments( argc, (const char **) argv );
+	if (!initParams.parseArguments( argc, (const char **) argv ))
+	{
+		LBERROR<<"Error in parameters"<<std::endl;
+		return EXIT_FAILURE;
+	}
 
 	// 3. initialization of local client node
 	lunchbox::RefPtr< eqMivt::EqMivt > client = new eqMivt::EqMivt(initParams);

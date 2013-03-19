@@ -13,6 +13,7 @@ Notes:
 #include "initParams.h"
 #include "frameData.h"
 #include "octreeContainer.h"
+#include "cubeCacheCPU.h"
 
 namespace eqMivt
 {
@@ -50,6 +51,7 @@ class Config : public eq::Config
 		eqMivt::FrameData	_frameData;
 
 		OctreeContainer 	_octreeContainer;
+		cubeCacheCPU		_cacheCPU;
 
 		//bool _handleKeyEvent( const eq::KeyEvent& event );
 };

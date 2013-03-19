@@ -16,31 +16,44 @@ Notes:
 namespace eqMivt
 {
 
-hdf5File::hdf5File(std::string file_name, std::string dataset_name, int p_levelCube, int p_nLevels, vmml::vector<3, int> p_cubeDim, vmml::vector<3, int> p_cubeInc) : FileManager(p_levelCube, p_nLevels, p_cubeDim, p_cubeInc)
+bool hdf5File::init(std::vector<std::string> file_params, int p_levelCube, int p_nLevels, vmml::vector<3, int> p_cubeDim, vmml::vector<3, int> p_cubeInc) 
 {
-	if ((file_id    = H5Fopen(file_name.c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+	if (!FileManager::init(file_params, p_levelCube, p_nLevels, p_cubeDim, p_cubeInc))
 	{
-		LBERROR<<"hdf5: opening "<<file_name<<std::endl;
+		LBERROR<<"FileManager: error initialization"<<file_params[0]<<std::endl;
 		error = true;
+		return false;
 	}
 
-	if ((dataset_id = H5Dopen1(file_id, dataset_name.c_str())) < 0 )
+	if ((file_id    = H5Fopen(file_params[0].c_str(), H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
 	{
-		LBERROR<<"hdf5: unable to open the requested data set "<<dataset_name<<std::endl;
+		LBERROR<<"hdf5: opening "<<file_params[0]<<std::endl;
 		error = true;
+		return false;
+	}
+
+	if ((dataset_id = H5Dopen1(file_id, file_params[1].c_str())) < 0 )
+	{
+		LBERROR<<"hdf5: unable to open the requested data set "<<file_params[1]<<std::endl;
+		error = true;
+		return false;
 	}
 
 	if ((spaceid    = H5Dget_space(dataset_id)) < 0)
 	{
 		LBERROR<<"hdf5: unable to open the requested data space"<<std::endl;
 		error = true;
+		return false;
 	}
 
 	if ((ndim       = H5Sget_simple_extent_dims (spaceid, dims, NULL)) < 0)
 	{
 		LBERROR<<"hdf5: handling file"<<std::endl;
 		error = true;
+		return false;
 	}
+
+	return true;
 }
 
 hdf5File::~hdf5File()

@@ -15,6 +15,7 @@ Notes:
 
 namespace eqMivt
 {
+
 class FileManager
 {
 	protected:
@@ -27,14 +28,20 @@ class FileManager
 		bool			error;
 
 	public:
-		FileManager(int p_levelCube, int p_nLevels, vmml::vector<3, int> p_cubeDim, vmml::vector<3, int> p_cubeInc)
+		FileManager()
 		{
-			error		= false;
+			error = false;
+		}
+
+		virtual bool init(std::vector<std::string> file_params, int p_levelCube, int p_nLevels, vmml::vector<3, int> p_cubeDim, vmml::vector<3, int> p_cubeInc)
+		{
 			levelCube 	= p_levelCube;
 			nLevels		= p_nLevels;
 			cubeDim		= p_cubeDim;
 			cubeInc		= p_cubeInc;
 			realCubeDim	= p_cubeDim + 2*p_cubeInc;
+
+			return true;
 		}
 
 		bool isError() { return error; }

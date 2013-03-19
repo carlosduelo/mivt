@@ -17,34 +17,55 @@ class InitParams : public co::Object
 	private:
 
 		// Octree Parameters
-		std::string 	_octreePathFile;
-		int		_maxLevel;
+		std::string 			_octreePathFile;
+		int				_maxLevel;
 
-		std::string 	_dataPathFile;
+		// Data Parameters
+		std::string			_type_file;
+		std::vector<std::string> 	_dataPathFile;
+		int				_cubeInc;
+		int				_cubeLevel;
 
-		uint32_t    	_maxFrames;
+		// Cache CPU parameters
+		int				_maxElements_CPU;
 
-		eq::uint128_t   _frameDataID;
+		// Cache GPU parameters
+		int				_maxElements_GPU;
+
+		uint32_t    			_maxFrames;
+
+		eq::uint128_t   		_frameDataID;
 
 	public:
 		InitParams();
 
 		virtual ~InitParams();
 
-		void parseArguments(const int argc, const char ** argv);
+		bool parseArguments(const int argc, const char ** argv);
 
 		bool checkParameters();
 
 		eq::uint128_t getFrameDataID() const  		{ return _frameDataID; }
 		void setFrameDataID( const eq::uint128_t& id ) 	{ _frameDataID = id; }
 
-		std::string 	getDataFile() { return _dataPathFile; }
+		uint32_t getMaxFrames()   const { return _maxFrames; }
 
+		// Data Parameters
+		std::string			getTypeFile() { return _type_file; }
+		std::vector<std::string> 	getDataFile() { return _dataPathFile; }
+		int				getCubeInc() { return _cubeInc; }
+		int				getCubeLevel() { return _cubeLevel; }
+
+		// Octree Parameters
 		std::string 	getOctreeFile() { return _octreePathFile; }
-
 		int 		getMaxLevel() { return _maxLevel; } 
 
-		uint32_t getMaxFrames()   const { return _maxFrames; }
+		// Cache CPU parameters
+		int	getMaxElements_CPU(){ return _maxElements_CPU;}
+
+		// Cache GPU parameters
+		int	getMaxElements_GPU(){ return _maxElements_GPU; }
+
 
 	protected:
 		virtual void getInstanceData( co::DataOStream& os );
