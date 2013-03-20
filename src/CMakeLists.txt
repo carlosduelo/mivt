@@ -14,6 +14,7 @@ set(MIVT_SOURCE	config.cpp
 		octreeContainer.cpp
 		linkedList.cpp
 		cubeCacheCPU.cpp
+		cubeCacheGPU.cpp
 		fileFactory.cpp
 )
 

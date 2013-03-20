@@ -1,6 +1,8 @@
 #ifndef EQ_MIVT_TYPEDEF_H
 #define EQ_MIVT_TYPEDEF_H
 
+#include <cuda_runtime.h>
+
 /* indentifier type for octree's node */
 typedef unsigned long long index_node_t;
 
@@ -18,7 +20,6 @@ typedef struct
 	index_node_t	cubeID;
 } visibleCube_t;
 
-#if 0
 typedef struct
 {
 	int		id_local;
@@ -27,6 +28,7 @@ typedef struct
 	cudaStream_t 	stream;
 } threadID_t;
 
+#if 0
 // Octree options
 #define UP_LEVEL_OCTREE		0
 #define DOWN_LEVEL_OCTREE	1

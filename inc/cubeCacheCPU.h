@@ -54,6 +54,11 @@ class cubeCacheCPU
 		bool init(std::string type_file, std::vector<std::string> file_params, int p_maxElements, vmml::vector<3, int> p_cubeDim, int p_cubeInc, int p_levelCube, int p_nLevels);
 		~cubeCacheCPU();
 
+		vmml::vector<3, int>    getCubeDim(){ return cubeDim; }
+		vmml::vector<3, int>    getCubeInc(){ return cubeInc; }
+		int     		getLevelCube(){ return levelCube;}
+		int			getnLevels(){ return nLevels; }
+
 		float *  push_cube(index_node_t  idCube);
 
                 void pop_cube(index_node_t idCube);

@@ -73,9 +73,9 @@ void Channel::frameDraw( const eq::uint128_t& frameID )
 		data[i+1] = g;
 		data[i+2] = b;
 	}
-	//glEnable(GL_SCISSOR_TEST);
-	//applyBuffer();
-	//applyViewport();
+	glEnable(GL_SCISSOR_TEST);
+	applyBuffer();
+	applyViewport();
 	glDrawPixels(viewport.w, viewport.h, GL_RGB, GL_FLOAT, data);
 
 	delete[] data;
