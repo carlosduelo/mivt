@@ -11,11 +11,12 @@ server
     connection
     {
         type          TCPIP
-        hostname      "localhost"
+        hostname      ""
         filename      "default"
     }
     config 
     {
+        
         attributes
         {
             robustness AUTO
@@ -23,7 +24,7 @@ server
         }
         appNode
         {
-            name     "localhost"
+            name     "node0"
             host     "localhost"
             connection
             {
@@ -34,11 +35,13 @@ server
             pipe
             {
                 name     "pipe0n0"
+                device   0
                 
                 window
                 {
                     name     "window0"
-                    viewport [ 0 0 1 1 ]
+                    viewport [ 480 100 0 0 ]
+                    viewport [ 480 100 960 600 ]
                     
                     attributes
                     {
@@ -54,9 +57,21 @@ server
                     }
                 }
             }
+        }
+        node
+        {
+            name     "node1"
+            host     "localhost"
+            connection
+            {
+                type          TCPIP
+                hostname      "localhost"
+                filename      "default"
+            }
             pipe
             {
-                name     "pipe1n0"
+                name     "pipe0n1"
+                device   0
                 
                 window
                 {
@@ -69,9 +84,21 @@ server
                     }
                 }
             }
+        }
+        node
+        {
+            name     "node2"
+            host     "localhost"
+            connection
+            {
+                type          TCPIP
+                hostname      "localhost"
+                filename      "default"
+            }
             pipe
             {
-                name     "pipe0n1"
+                name     "pipe0n2"
+                device   0
                 
                 window
                 {
@@ -84,9 +111,21 @@ server
                     }
                 }
             }
+        }
+        node
+        {
+            name     "node3"
+            host     "localhost"
+            connection
+            {
+                type          TCPIP
+                hostname      "localhost"
+                filename      "default"
+            }
             pipe
             {
-                name     "pipe1n1"
+                name     "pipe0n3"
+                device   0
                 
                 window
                 {
@@ -95,21 +134,6 @@ server
                     channel
                     {
                         name     "channel3"
-                        viewport [ 0 0 1 1 ]
-                    }
-                }
-            }
-            pipe
-            {
-                name     "pipe1n2"
-                
-                window
-                {
-                    name     "window4"
-                    viewport [ 0 0 1 1 ]
-                    channel
-                    {
-                        name     "channel4"
                         viewport [ 0 0 1 1 ]
                     }
                 }
@@ -124,7 +148,6 @@ server
             focus_distance 1
             focus_mode     fixed
         }
-
         layout
         {
             view
@@ -132,6 +155,9 @@ server
                 observer ""
                 wall
                 {
+                    bottom_left  [   -0.80000   -0.50000   -1.00000 ]
+                    bottom_right [    0.80000   -0.50000   -1.00000 ]
+                    top_left     [   -0.80000    0.50000   -1.00000 ]
                 }
                 
             }
@@ -151,17 +177,27 @@ server
                 channel  "channel0"
             }
         }
+        
+        compound
+        {
+            
             compound
             {
                 channel  ( canvas 0  segment 0   layout   0  view 0 )
-
-                #tile_equalizer
-		load_equalizer
+                load_equalizer
                 {
+                    mode    2D
+                }
+                
+                compound
+                {
+                    channel  "channel0"
+                    viewport [ 0.000000 0.000000 1.000000 0.250000 ]
                 }
                 compound
                 {
                     channel  "channel1"
+                    viewport [ 0.000000 0.250000 1.000000 0.250000 ]
                     outputframe
                     {
                         name     "frame.channel1"
@@ -170,6 +206,7 @@ server
                 compound
                 {
                     channel  "channel2"
+                    viewport [ 0.000000 0.500000 1.000000 0.250000 ]
                     outputframe
                     {
                         name     "frame.channel2"
@@ -178,17 +215,10 @@ server
                 compound
                 {
                     channel  "channel3"
+                    viewport [ 0.000000 0.750000 1.000000 0.250000 ]
                     outputframe
                     {
                         name     "frame.channel3"
-                    }
-                }
-                compound
-                {
-                    channel  "channel4"
-                    outputframe
-                    {
-                        name     "frame.channel4"
                     }
                 }
                 inputframe
@@ -203,11 +233,8 @@ server
                 {
                     name     "frame.channel3"
                 }
-                inputframe
-                {
-                    name     "frame.channel4"
-                }
             }
+        }
     }
 }
 

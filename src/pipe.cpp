@@ -7,6 +7,8 @@ Notes:
 */
 
 #include "pipe.h"
+#include "node.h"
+#include "cuda_runtime.h"
 
 namespace eqMivt
 {
@@ -27,6 +29,27 @@ bool Pipe::configInit( const eq::uint128_t& initID )
 	Config*         config      		= static_cast<Config*>( getConfig( ));
 	const InitParams& 	initParams    	= config->getInitParams();
 	const eq::uint128_t&  	frameDataID 	= initParams.getFrameDataID();
+
+	Node *  node =  static_cast<Node*>(getNode());
+#if 0
+int dev = -1;
+cudaGetDevice(&dev);
+std::cout<<"-----------------------------------------------___>"<<dev<<std::endl;
+#endif
+
+	// Reading octree file
+	if (!_octreeContainer.readOctreeFile(initParams.getOctreeFile(), initParams.getMaxLevel()))
+	{
+		LBERROR<<"Error creating octree container"<<std::endl;
+		return false;
+	}
+
+	// Creating gpu cache
+	if (!_cache.init(node->getCubeCacheCPU(), 4, initParams.getMaxElements_GPU()))
+	{
+		LBERROR<<"Error creating cache in pipe"<<std::endl;
+		return false;
+	}
 
 	return config->mapObject( &_frameData, frameDataID );
 }

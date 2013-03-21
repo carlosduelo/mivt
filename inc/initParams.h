@@ -51,20 +51,20 @@ class InitParams : public co::Object
 		uint32_t getMaxFrames()   const { return _maxFrames; }
 
 		// Data Parameters
-		std::string			getTypeFile() { return _type_file; }
-		std::vector<std::string> 	getDataFile() { return _dataPathFile; }
-		int				getCubeInc() { return _cubeInc; }
-		int				getCubeLevel() { return _cubeLevel; }
+		std::string			getTypeFile() const { return _type_file; }
+		std::vector<std::string> 	getDataFile() const { return _dataPathFile; }
+		int				getCubeInc() const { return _cubeInc; }
+		int				getCubeLevel() const { return _cubeLevel; }
 
 		// Octree Parameters
-		std::string 	getOctreeFile() { return _octreePathFile; }
-		int 		getMaxLevel() { return _maxLevel; } 
+		std::string 	getOctreeFile() const { return _octreePathFile; }
+		int 		getMaxLevel() const { return _maxLevel; } 
 
 		// Cache CPU parameters
-		int	getMaxElements_CPU(){ return _maxElements_CPU;}
+		int	getMaxElements_CPU() const { return _maxElements_CPU;}
 
 		// Cache GPU parameters
-		int	getMaxElements_GPU(){ return _maxElements_GPU; }
+		int	getMaxElements_GPU() const { return _maxElements_GPU; }
 
 
 	protected:

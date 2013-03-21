@@ -10,6 +10,8 @@ Notes:
 #define EQ_MIVT_PIPE_H
 
 #include "config.h"
+#include "cubeCache.h"
+#include "octreeContainer.h"
 
 namespace eqMivt
 {
@@ -29,7 +31,10 @@ class Pipe : public eq::Pipe
 		virtual void frameStart( const eq::uint128_t& frameID, const uint32_t frameNumber );
 
 	private:
-		FrameData 	_frameData;
+		FrameData 		_frameData;
+
+		cubeCache		_cache;
+		OctreeContainer 	_octreeContainer;
 };
 
 }

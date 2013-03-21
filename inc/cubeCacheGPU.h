@@ -45,6 +45,11 @@ class cubeCacheGPU
 
 		~cubeCacheGPU();
 
+		vmml::vector<3, int>    getCubeDim(){ return cubeDim; }
+		vmml::vector<3, int>    getCubeInc(){ return cubeInc; }
+		int     		getLevelCube(){ return levelCube;}
+		int			getnLevels(){ return nLevels; }
+
 		bool init(cubeCacheCPU * p_cpuCache, int p_maxElements);
 
 		float * push_cube(index_node_t idCube, threadID_t * thread);

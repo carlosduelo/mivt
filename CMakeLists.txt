@@ -14,6 +14,8 @@ else()
 	message(ERROR "EQUALIZER NOT FOUND")
 endif()
 
+set(CMAKE_BUILD_TYPE Debug)
+
 # BOOST 
 set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)

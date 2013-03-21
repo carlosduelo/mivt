@@ -10,12 +10,13 @@ set(MIVT_SOURCE	config.cpp
 		node.cpp
 		pipe.cpp
 		frameData.cpp
-		hdf5File.cpp
 		octreeContainer.cpp
+		hdf5File.cpp
+		fileFactory.cpp
 		linkedList.cpp
 		cubeCacheCPU.cpp
 		cubeCacheGPU.cpp
-		fileFactory.cpp
+		cubeCache.cpp
 )
 
 set(MIVT_CUDA_SOURCE octreeContainer_GPU.cu)

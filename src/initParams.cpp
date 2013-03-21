@@ -39,8 +39,10 @@ bool InitParams::parseArguments(const int argc, const char ** argv)
 		TCLAP::ValueArg<std::string> octree_file( "o", "octree-file", "File containing octree: path:max_level", true, "", "string", command );
 		TCLAP::ValueArg<std::string> volume_file( "d", "data", "File containing volume type:type_file:file_path:options:level_cube", true, "", "string", command );
 
-		TCLAP::ValueArg<int> cacheCPU( "c", "cpu-max-elements", "File containing volume type:type_file:file_path:options:level_cube", true, 1, "string", command );
+		TCLAP::ValueArg<int> cacheCPU( "c", "cpu-max-elements", "elements in cpu cache", true, 1, "int", command );
 		
+		TCLAP::ValueArg<int> cacheGPU( "g", "gpu-max-elements", "elements in gpu cache", true, 1, "int", command );
+
 		TCLAP::UnlabeledMultiArg< std::string > ignoreArgs( "ignore", "Ignored unlabeled arguments", false, "any", command );
 
 		command.parse(argc, argv);
@@ -92,6 +94,9 @@ bool InitParams::parseArguments(const int argc, const char ** argv)
 
 		// Cache cpu parameters
 		_maxElements_CPU = cacheCPU.getValue();
+
+		// Cache gpu parameters
+		_maxElements_GPU = cacheGPU.getValue();
 
 		return true;
 

@@ -15,6 +15,8 @@ Notes:
 
 namespace eqMivt
 {
+
+
 class OctreeContainer
 {
 	private:
@@ -35,6 +37,8 @@ class OctreeContainer
 		OctreeContainer();
 
 		~OctreeContainer();
+
+		static int getnLevelsFromOctreeFile(std::string file_name);
 
 		bool readOctreeFile(std::string file_name, int p_maxLevel);
 

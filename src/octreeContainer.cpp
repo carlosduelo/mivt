@@ -16,6 +16,43 @@ Notes:
 namespace eqMivt
 {
 
+int OctreeContainer::getnLevelsFromOctreeFile(std::string file_name)
+{
+	/* Read octree from file */
+	std::ifstream file;
+
+	try
+	{
+		file.open(file_name.c_str(), std::ifstream::binary);
+	}
+	catch(...)
+	{
+		LBERROR<<"Octree: error opening octree file"<<std::endl;
+		return 0;
+	}
+
+	int magicWord;
+
+	file.read((char*)&magicWord, sizeof(magicWord));
+
+	if (magicWord != 919278872)
+	{
+		LBERROR<<"Octree: error invalid file format"<<std::endl;
+		return 0;
+	}
+
+	int   no;
+	float no1;
+	int nLevels;
+
+	file.read((char*)&no1, 	sizeof(float));
+	file.read((char*)&no, 	sizeof(int));
+	file.read((char*)&no, 	sizeof(int));
+	file.read((char*)&no, 	sizeof(int));
+	file.read((char*)&no, 	sizeof(int));
+	file.read((char*)&nLevels, 	sizeof(int));
+}
+
 OctreeContainer::OctreeContainer()
 {
 

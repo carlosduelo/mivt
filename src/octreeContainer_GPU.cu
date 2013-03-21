@@ -9,6 +9,8 @@ Notes:
 #include <octreeContainer_GPU.h>
 #include <cuda_help.h>
 
+#include <sstream>
+
 namespace eqMivt
 {
 
@@ -25,45 +27,51 @@ __global__ void insertOctreePointers(index_node_t ** octreeGPU, int * sizes, ind
 
 bool Create_OctreeContainer(index_node_t ** octreeCPU, int * sizesCPU, int maxLevel, index_node_t *** octree, index_node_t ** memoryGPU, int ** sizes, std::string * result)
 {
+	std::stringstream ss (std::stringstream::in | std::stringstream::out);
+
 	int total = 0;
 	for(int i=0; i<=maxLevel; i++)
 		total+=sizesCPU[i];
 
-	(*result) += "Allocating memory octree CUDA octree ";
-	(*result) +=(maxLevel+1)*sizeof(index_node_t*)/1024.0f/1024.0f;
-	(*result) += " MB: \n";
+	ss<< "Allocating memory octree CUDA octree ";
+	ss<<(maxLevel+1)*sizeof(index_node_t*)/1024.0f/1024.0f;
+	ss<< " MB: \n";
 	if (cudaSuccess != (cudaMalloc(octree, (maxLevel+1)*sizeof(index_node_t*))))
 	{
-		(*result) += "Octree: error allocating octree in the gpu\n";
+		ss<< "Octree: error allocating octree in the gpu\n";
+		*result = ss.str();
 		return false;
 	}
 
-	(*result) += "Allocating memory octree CUDA memory ";
-	(*result) += total*sizeof(index_node_t)/1024.0f/1024.0f;
-	(*result) += " MB:\n";
+	ss<< "Allocating memory octree CUDA memory ";
+	ss<< total*sizeof(index_node_t)/1024.0f/1024.0f;
+	ss<< " MB:\n";
 	if (cudaSuccess != (cudaMalloc(memoryGPU, total*sizeof(index_node_t))))
 	{
-		(*result) += "Octree: error allocating octree in the gpu\n";
+		ss<< "Octree: error allocating octree in the gpu\n";
+		*result = ss.str();
 		return false;
 	}
-	(*result) += "Allocating memory octree CUDA sizes ";
-	(*result) += (maxLevel+1)*sizeof(int)/1024.0f/1024.0f;
-	(*result) += " MB:\n";
+	ss<< "Allocating memory octree CUDA sizes ";
+	ss<< (maxLevel+1)*sizeof(int)/1024.0f/1024.0f;
+	ss<< " MB:\n";
 	if (cudaSuccess != (cudaMalloc(sizes,   (maxLevel+1)*sizeof(int))))
 	{
-		(*result) += "Octree: error allocating octree in the gpu\n";
+		ss<< "Octree: error allocating octree in the gpu\n";
+		*result = ss.str();
 		return false;
 	}
 
 	/* Compiando sizes */
-	(*result) += "Octree: coping to device the sizes ";
+	ss<< "Octree: coping to device the sizes ";
 	if (cudaSuccess != (cudaMemcpy((void*)*sizes, (void*)sizesCPU, (maxLevel+1)*sizeof(int), cudaMemcpyHostToDevice)))
 	{
-		(*result) += "Fail\n";
+		ss<< "Fail\n";
+		*result = ss.str();
 		return false;
 	}
 	else
-		(*result) += "OK\n";
+		ss<< "OK\n";
 
 	/* end sizes */
 
@@ -72,16 +80,17 @@ bool Create_OctreeContainer(index_node_t ** octreeCPU, int * sizesCPU, int maxLe
 	int offset = 0;
 	for(int i=0; i<=maxLevel; i++)
 	{
-		(*result) += "Coping to device level ";
-		(*result) += i;
-		(*result) +=": ";
+		ss<< "Coping to device level ";
+		ss<< i;
+		ss<<": ";
 		if (cudaSuccess != (cudaMemcpy((void*)((*memoryGPU)+offset), (void*)octreeCPU[i], sizesCPU[i]*sizeof(index_node_t), cudaMemcpyHostToDevice)))
 		{
-			(*result)+="Fail\n";
+			ss<<"Fail\n";
+			*result = ss.str();
 			return false;
 		}
 		else
-			(*result) += "OK\n";
+			ss<< "OK\n";
 
 		offset+=sizesCPU[i];
 	}
@@ -91,16 +100,18 @@ bool Create_OctreeContainer(index_node_t ** octreeCPU, int * sizesCPU, int maxLe
 
 	insertOctreePointers<<<blocks,threads>>>(*octree, *sizes,*memoryGPU);
 	//      (*result)<<"Launching kernek blocks ("<<blocks.x<<","<<blocks.y<<","<<blocks.z<<") threads ("<<threads.x<<","<<threads.y<<","<<threads.z<<") error: "<< cudaGetErrorString(cudaGetLastError())<<std::endl;
-	(*result) += "Octree: sorting pointers ";
+	ss<< "Octree: sorting pointers ";
 	if (cudaSuccess != cudaDeviceSynchronize())
 	{
-		(*result) += "Fail\n";
+		ss<< "Fail\n";
+		*result = ss.str();
 		return false;
 	}
 	else
-		(*result) += "OK\n";
+		ss<< "OK\n";
 
-	(*result) += "End copying octree to GPU\n";
+	ss<< "End copying octree to GPU\n";
+	*result = ss.str();
 
 	return true;
 }

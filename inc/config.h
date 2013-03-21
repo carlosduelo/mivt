@@ -12,8 +12,6 @@ Notes:
 // members
 #include "initParams.h"
 #include "frameData.h"
-#include "octreeContainer.h"
-#include "cubeCacheCPU.h"
 
 namespace eqMivt
 {
@@ -40,7 +38,8 @@ class Config : public eq::Config
 		//virtual bool handleEvent( eq::EventICommand command );
 
 		/** Map per-config data to the local node process */
-	        bool loadData( const eq::uint128_t& initParamsID );
+	        bool loadData( const eq::uint128_t& initParamsID, const std::vector<eq::Pipe*>& pipes);
+	
 
 	protected:
 		virtual ~Config();
@@ -49,9 +48,6 @@ class Config : public eq::Config
 
 		eqMivt::InitParams 	_initParams;
 		eqMivt::FrameData	_frameData;
-
-		OctreeContainer 	_octreeContainer;
-		cubeCacheCPU		_cacheCPU;
 
 		//bool _handleKeyEvent( const eq::KeyEvent& event );
 };
