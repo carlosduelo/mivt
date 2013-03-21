@@ -88,12 +88,8 @@ uint32_t Config::startFrame()
 	return eq::Config::startFrame(version);
 }
 
-
-
-#if 0
 bool Config::handleEvent( eq::EventICommand command )
 {
-#if 0
 	switch( command.getEventType( ))
 	{
 		case eq::Event::KEY_PRESS:
@@ -106,9 +102,23 @@ bool Config::handleEvent( eq::EventICommand command )
 				}
 				break;
 			}
-		case eq::Event::CHANNEL_POINTER_BUTTON_PRESS:
-		case eq::Event::CHANNEL_POINTER_BUTTON_RELEASE:
+		//case eq::Event::CHANNEL_POINTER_BUTTON_PRESS:
+		//case eq::Event::CHANNEL_POINTER_BUTTON_RELEASE:
 		case eq::Event::CHANNEL_POINTER_MOTION:
+			const eq::Event& event = command.get< eq::Event >();
+			switch( event.pointerMotion.buttons )
+			{
+				case eq::PTR_BUTTON1:
+
+					_frameData.spinCamera(
+							-0.005f * event.pointerMotion.dy,
+							-0.005f * event.pointerMotion.dx );
+					//_redraw = true;
+					return true;
+			}
+			break;
+
+		#if 0
 		case eq::Event::CHANNEL_POINTER_WHEEL:
 		case eq::Event::MAGELLAN_AXIS:
 		case eq::Event::MAGELLAN_BUTTON:
@@ -116,15 +126,15 @@ bool Config::handleEvent( eq::EventICommand command )
 		case eq::Event::WINDOW_RESIZE:
 		case eq::Event::WINDOW_CLOSE:
 		case eq::Event::VIEW_RESIZE:
-		//	_redraw = true;
+			_redraw = true;
 			break;
 
 		case IDLE_AA_LEFT:
 		default:
 			break;
+		#endif
 	}
-	_redraw |= eq::Config::handleEvent( command );
-#endif
+	//_redraw |= eq::Config::handleEvent( command );
 
 	return eq::Config::handleEvent( command );;
 }
@@ -143,5 +153,4 @@ bool Config::_handleKeyEvent( const eq::KeyEvent& event )
 
 	}
 }
-#endif
 }

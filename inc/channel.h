@@ -22,6 +22,10 @@ class Channel : public eq::Channel
 
 	protected:
 		virtual ~Channel() {}
+	private:
+	float r;
+	float g;
+	float b;
 };
 }
 

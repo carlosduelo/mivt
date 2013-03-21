@@ -20,6 +20,20 @@ class FrameData : public co::Serializable
 		FrameData();
 
 		virtual ~FrameData() {};
+
+		void reset();
+
+		void setCameraPosition( const eq::Vector3f& position );
+		void setRotation( const eq::Vector3f& rotation);
+		void setModelRotation( const eq::Vector3f& rotation    );
+		void spinCamera( const float x, const float y );
+		void spinModel(  const float x, const float y, const float z );
+		void moveCamera( const float x, const float y, const float z );
+
+		const eq::Matrix4f& getCameraRotation() const { return _rotation; }
+		const eq::Matrix4f& getModelRotation() const { return _modelRotation; }
+		const eq::Vector3f& getCameraPosition() const { return _position; }
+
 	protected:
 		/** @sa Object::serialize() */
 		virtual void serialize( co::DataOStream& os, const uint64_t dirtyBits );
@@ -35,6 +49,10 @@ class FrameData : public co::Serializable
 			DIRTY_VIEW    = co::Serializable::DIRTY_CUSTOM << 2,
 			DIRTY_MESSAGE = co::Serializable::DIRTY_CUSTOM << 3,
 		};
+	private:
+		eq::Matrix4f _rotation;
+		eq::Matrix4f _modelRotation;
+		eq::Vector3f _position;
 };
 
 }
