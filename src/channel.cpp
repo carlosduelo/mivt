@@ -66,16 +66,23 @@ void Channel::frameDraw( const eq::uint128_t& frameID )
 
  	eq::PixelViewport  viewport = getPixelViewport();
 
+#if 0
 	glLineWidth(10); 
 	glBegin(GL_LINES); 
 	glVertex2i( 2.0f, 2.0f); 
 	glVertex2i( 0.0f, 0.0f); 
 	glEnd(); 
-
+#endif
 
 	std::cout<<getName()<<" "<<" .............>"<<viewport.x<<" "<<viewport.y<<" "<<viewport.h<<" "<<viewport.w<<std::endl;
 
-#if 0
+	glEnable(GL_SCISSOR_TEST);
+	//applyBuffer();
+	//applyViewport();
+	//glScissor(viewport.x,viewport.y,viewport.w, viewport.h);
+
+
+#if 1
 	float * data = new float [3*viewport.h*viewport.w];
 	for(int i=0; i<3*viewport.w*viewport.h; i+=3)
 	{
@@ -83,12 +90,21 @@ void Channel::frameDraw( const eq::uint128_t& frameID )
 		data[i+1] = g;
 		data[i+2] = b;
 	}
-	glEnable(GL_SCISSOR_TEST);
-	applyBuffer();
-	applyViewport();
 	glDrawPixels(viewport.w, viewport.h, GL_RGB, GL_FLOAT, data);
 	delete[] data;
 #endif
+//drawStatistics();
+}
+void 	Channel::frameTilesStart (const eq::uint128_t &frameID)
+{
+	std::cout<<"Start tile"<<std::endl;
+	eq::Channel::frameTilesStart (frameID);
+}
+
+void 	Channel::frameTilesFinish (const eq::uint128_t &frameID)
+{
+	std::cout<<"End tile"<<std::endl;
+	eq::Channel::frameTilesFinish (frameID);
 }
 
 }

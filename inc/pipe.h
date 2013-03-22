@@ -25,7 +25,6 @@ class Pipe : public eq::Pipe
 	protected:
 		virtual ~Pipe() {}
 
-		//virtual eq::WindowSystem selectWindowSystem() const;
 		virtual bool configInit( const eq::uint128_t& initID );
 		virtual bool configExit();
 		virtual void frameStart( const eq::uint128_t& frameID, const uint32_t frameNumber );

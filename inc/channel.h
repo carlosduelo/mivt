@@ -24,6 +24,8 @@ class Channel : public eq::Channel
 		virtual ~Channel() {}
 		virtual bool configInit( const eq::uint128_t& initID );
 		virtual bool configExit();
+		virtual void frameTilesStart (const eq::uint128_t &frameID);
+		virtual void frameTilesFinish (const eq::uint128_t &frameID);
 	private:
 	float r;
 	float g;
