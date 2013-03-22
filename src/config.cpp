@@ -105,6 +105,7 @@ bool Config::handleEvent( eq::EventICommand command )
 		//case eq::Event::CHANNEL_POINTER_BUTTON_PRESS:
 		//case eq::Event::CHANNEL_POINTER_BUTTON_RELEASE:
 		case eq::Event::CHANNEL_POINTER_MOTION:
+		{
 			const eq::Event& event = command.get< eq::Event >();
 			switch( event.pointerMotion.buttons )
 			{
@@ -117,9 +118,17 @@ bool Config::handleEvent( eq::EventICommand command )
 					return true;
 			}
 			break;
-
-		#if 0
+		}
 		case eq::Event::CHANNEL_POINTER_WHEEL:
+		{
+			const eq::Event& event = command.get< eq::Event >();
+			_frameData.moveCamera( -0.05f * event.pointerWheel.yAxis,
+					0.f,
+					0.05f * event.pointerWheel.xAxis );
+			//_redraw = true;
+			return true;
+		}
+		#if 0
 		case eq::Event::MAGELLAN_AXIS:
 		case eq::Event::MAGELLAN_BUTTON:
 		case eq::Event::WINDOW_EXPOSE:

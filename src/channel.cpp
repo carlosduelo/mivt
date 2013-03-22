@@ -7,6 +7,9 @@ Notes:
  */
 
 #include "channel.h"
+#include "frameData.h"
+#include "pipe.h"
+
 #include <stdlib.h>
 
 #include <GL/gl.h>
@@ -23,16 +26,56 @@ Channel::Channel(eq::Window* parent) : eq::Channel(parent)
 	b = (float) rand()/(float)RAND_MAX;
 }
 
+bool Channel::configInit( const eq::uint128_t& initID )
+{
+	if( !eq::Channel::configInit( initID ))
+		return false;
+
+	setNearFar( 0.1f, 10.0f );
+
+	return true;
+}
+
+bool Channel::configExit()
+{
+	return eq::Channel::configExit();
+}
+
 void Channel::frameDraw( const eq::uint128_t& frameID )
 {
 	eq::Channel::frameDraw( frameID ); // Setup OpenGL state
 
+	// Get Camera
+	const Pipe* pipe = static_cast<const Pipe*>( getPipe( ));
+	const FrameData& frameData = pipe->getFrameData();
+
+	// Camera transformations
+	const eq::Vector3f& position = frameData.getCameraPosition();
+	glMultMatrixf( frameData.getCameraRotation().array );
+	glTranslatef( position.x(), position.y(), position.z() );
+
+	std::cout<<position<<std::endl;
+
+	float modelview[16];
+
+	glGetFloatv(GL_MODELVIEW_MATRIX , modelview);
+	std::cout<<modelview[0]<<" "<<modelview[1]<<" "<<modelview[2]<<std::endl;
+	std::cout<<modelview[4]<<" "<<modelview[5]<<" "<<modelview[6]<<std::endl;
+	std::cout<<modelview[8]<<" "<<modelview[9]<<" "<<modelview[10]<<std::endl;
+
+
  	eq::PixelViewport  viewport = getPixelViewport();
+
+	glLineWidth(10); 
+	glBegin(GL_LINES); 
+	glVertex2i( 2.0f, 2.0f); 
+	glVertex2i( 0.0f, 0.0f); 
+	glEnd(); 
 
 
 	std::cout<<getName()<<" "<<" .............>"<<viewport.x<<" "<<viewport.y<<" "<<viewport.h<<" "<<viewport.w<<std::endl;
 
-
+#if 0
 	float * data = new float [3*viewport.h*viewport.w];
 	for(int i=0; i<3*viewport.w*viewport.h; i+=3)
 	{
@@ -44,8 +87,8 @@ void Channel::frameDraw( const eq::uint128_t& frameID )
 	applyBuffer();
 	applyViewport();
 	glDrawPixels(viewport.w, viewport.h, GL_RGB, GL_FLOAT, data);
-
 	delete[] data;
+#endif
 }
 
 }

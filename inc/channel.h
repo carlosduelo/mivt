@@ -22,6 +22,8 @@ class Channel : public eq::Channel
 
 	protected:
 		virtual ~Channel() {}
+		virtual bool configInit( const eq::uint128_t& initID );
+		virtual bool configExit();
 	private:
 	float r;
 	float g;

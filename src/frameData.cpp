@@ -13,6 +13,7 @@ namespace eqMivt
 
 FrameData::FrameData()
 {
+	reset();
 }
 
 void FrameData::spinCamera( const float x, const float y )
@@ -22,17 +23,6 @@ void FrameData::spinCamera( const float x, const float y )
 
 	_rotation.pre_rotate_x( x );
 	_rotation.pre_rotate_y( y );
-	setDirty( DIRTY_CAMERA );
-}
-
-void FrameData::spinModel( const float x, const float y, const float z )
-{
-	if( x == 0.f && y == 0.f && z == 0.f )
-		return;
-
-	_modelRotation.pre_rotate_x( x );
-	_modelRotation.pre_rotate_y( y );
-	_modelRotation.pre_rotate_z( z );
 	setDirty( DIRTY_CAMERA );
 }
 
@@ -59,15 +49,6 @@ void FrameData::setRotation( const eq::Vector3f& rotation )
 	_rotation.rotate_x( rotation.x() );
 	_rotation.rotate_y( rotation.y() );
 	_rotation.rotate_z( rotation.z() );
-	setDirty( DIRTY_CAMERA );
-}
-
-void FrameData::setModelRotation(  const eq::Vector3f& rotation )
-{
-	_modelRotation = eq::Matrix4f::IDENTITY;
-	_modelRotation.rotate_x( rotation.x() );
-	_modelRotation.rotate_y( rotation.y() );
-	_modelRotation.rotate_z( rotation.z() );
 	setDirty( DIRTY_CAMERA );
 }
 
