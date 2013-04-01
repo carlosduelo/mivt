@@ -18,7 +18,6 @@ class Channel : public eq::Channel
 	public:
 		Channel( eq::Window* parent );
 
-		virtual void frameDraw( const eq::uint128_t& frameID );
 
 	protected:
 		virtual ~Channel() {}
@@ -26,6 +25,7 @@ class Channel : public eq::Channel
 		virtual bool configExit();
 		virtual void frameTilesStart (const eq::uint128_t &frameID);
 		virtual void frameTilesFinish (const eq::uint128_t &frameID);
+		virtual void frameDraw( const eq::uint128_t& frameID );
 	private:
 	float r;
 	float g;

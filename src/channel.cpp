@@ -12,9 +12,7 @@ Notes:
 
 #include <stdlib.h>
 
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <GL/glut.h>
+#include "eq/client/gl.h"
 
 namespace eqMivt
 {
@@ -43,7 +41,10 @@ bool Channel::configExit()
 
 void Channel::frameDraw( const eq::uint128_t& frameID )
 {
-	eq::Channel::frameDraw( frameID ); // Setup OpenGL state
+	EQ_GL_CALL( glEnable(GL_SCISSOR_TEST));
+	EQ_GL_CALL( applyBuffer() );
+	EQ_GL_CALL( applyViewport() );
+	//eq::Channel::frameDraw( frameID ); // Setup OpenGL state
 
 	// Get Camera
 	const Pipe* pipe = static_cast<const Pipe*>( getPipe( ));
@@ -51,14 +52,15 @@ void Channel::frameDraw( const eq::uint128_t& frameID )
 
 	// Camera transformations
 	const eq::Vector3f& position = frameData.getCameraPosition();
-	glMultMatrixf( frameData.getCameraRotation().array );
-	glTranslatef( position.x(), position.y(), position.z() );
+	EQ_GL_CALL( glMultMatrixf( frameData.getCameraRotation().array) );
+
+	EQ_GL_CALL( glTranslatef( position.x(), position.y(), position.z() ) );
 
 	std::cout<<position<<std::endl;
 
 	float modelview[16];
 
-	glGetFloatv(GL_MODELVIEW_MATRIX , modelview);
+	EQ_GL_CALL( glGetFloatv(GL_MODELVIEW_MATRIX , modelview) );
 	std::cout<<modelview[0]<<" "<<modelview[1]<<" "<<modelview[2]<<std::endl;
 	std::cout<<modelview[4]<<" "<<modelview[5]<<" "<<modelview[6]<<std::endl;
 	std::cout<<modelview[8]<<" "<<modelview[9]<<" "<<modelview[10]<<std::endl;
@@ -66,23 +68,9 @@ void Channel::frameDraw( const eq::uint128_t& frameID )
 
  	eq::PixelViewport  viewport = getPixelViewport();
 
-#if 0
-	glLineWidth(10); 
-	glBegin(GL_LINES); 
-	glVertex2i( 2.0f, 2.0f); 
-	glVertex2i( 0.0f, 0.0f); 
-	glEnd(); 
-#endif
-
 	std::cout<<getName()<<" "<<" .............>"<<viewport.x<<" "<<viewport.y<<" "<<viewport.h<<" "<<viewport.w<<std::endl;
 
-	glEnable(GL_SCISSOR_TEST);
-	//applyBuffer();
-	//applyViewport();
-	//glScissor(viewport.x,viewport.y,viewport.w, viewport.h);
 
-
-#if 1
 	float * data = new float [3*viewport.h*viewport.w];
 	for(int i=0; i<3*viewport.w*viewport.h; i+=3)
 	{
@@ -90,11 +78,13 @@ void Channel::frameDraw( const eq::uint128_t& frameID )
 		data[i+1] = g;
 		data[i+2] = b;
 	}
-	glDrawPixels(viewport.w, viewport.h, GL_RGB, GL_FLOAT, data);
+
+	EQ_GL_CALL( glDrawPixels(viewport.w, viewport.h, GL_RGB, GL_FLOAT, data) );
 	delete[] data;
-#endif
-//drawStatistics();
+
+	//drawStatistics();
 }
+
 void 	Channel::frameTilesStart (const eq::uint128_t &frameID)
 {
 	std::cout<<"Start tile"<<std::endl;
